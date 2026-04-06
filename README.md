@@ -36,6 +36,9 @@ Current focus:
 - framework architecture
 - data systems
 
+Test note:
+- README updated on April 6, 2026 to verify GitHub upload flow
+
 ---
 
 ## Author
