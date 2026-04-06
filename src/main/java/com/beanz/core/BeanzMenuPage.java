@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public class BeanzMenuPage extends BasicCustomUIPage {
-    private static final String PAGE_LAYOUT = "Custom/BeanzMenu.ui";
+    private static final String PAGE_LAYOUT = "UI/Custom/BeanzMenu.ui";
 
     public BeanzMenuPage(PlayerRef playerRef) {
         super(playerRef, CustomPageLifetime.CanDismiss);
