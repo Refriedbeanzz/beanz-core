@@ -1,0 +1,18 @@
+{
+  "Group": "com.beanz",
+  "Name": "BeanzCore",
+  "Version": "${pluginVersion}",
+  "Description": "Core framework plugin for RefriedBeanz server systems.",
+  "Authors": [
+    {
+      "Name": "RefriedBeanzz"
+    }
+  ],
+  "Website": "https://github.com/refriedbeanzz/beanz-core",
+  "ServerVersion": "*",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "Main": "com.beanz.core.BeanzCoreMod",
+  "IncludesAssetPack": true
+}

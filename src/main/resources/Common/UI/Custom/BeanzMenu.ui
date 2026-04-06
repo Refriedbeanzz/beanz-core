@@ -1,0 +1,26 @@
+$Common = "Common.ui";
+
+Group {
+  LayoutMode: Center;
+
+  Group #Panel {
+    Background: (Color: #101418ee);
+    Anchor: (Width: 420, Height: 220);
+    LayoutMode: Top;
+
+    Label #Title {
+      Style: (FontSize: 28, TextColor: #f4f0d7, HorizontalAlignment: Center);
+      Anchor: (Top: 26, Left: 24, Right: 24, Height: 36);
+    }
+
+    Label #Body {
+      Style: (FontSize: 16, TextColor: #e5dfc8, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 84, Left: 36, Right: 36, Height: 46);
+    }
+
+    Label #Footer {
+      Style: (FontSize: 13, TextColor: #b8c0bf, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 146, Left: 36, Right: 36, Height: 34);
+    }
+  }
+}

@@ -3,14 +3,56 @@ plugins {
 }
 
 group = 'com.beanz'
-version = '1.0'
+version = '1.0.1'
+
+def appData = System.getenv('APPDATA')
+def defaultHytaleHome = appData ? "${appData}/Hytale" : null
+def hytaleHome = providers.gradleProperty('hytaleHome').orElse(defaultHytaleHome ?: '').get()
+def hytaleServerJar = file("${hytaleHome}/install/release/package/game/latest/Server/HytaleServer.jar")
+def hytaleEarlyPluginsDir = file("${hytaleHome}/UserData/earlyplugins")
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    implementation files(hytaleServerJar)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    inputs.property('pluginVersion', version)
+
+    filesMatching(['manifest.json', 'plugin.json']) {
+        expand(pluginVersion: version)
+    }
+}
+
+jar {
+    archiveBaseName = 'beanz-core'
+}
+
+tasks.register('deployToHytale', Copy) {
+    dependsOn tasks.named('jar')
+    from(tasks.named('jar').flatMap { it.archiveFile })
+    into(hytaleEarlyPluginsDir)
+    onlyIf {
+        hytaleEarlyPluginsDir.exists()
+    }
+}
+
+tasks.register('printHytalePaths') {
+    doLast {
+        println "Hytale home: ${hytaleHome}"
+        println "Server jar: ${hytaleServerJar}"
+        println "Early plugins dir: ${hytaleEarlyPluginsDir}"
+    }
 }
