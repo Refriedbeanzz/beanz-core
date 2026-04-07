@@ -24,7 +24,7 @@ Group {
     }
 
     Label #SkillNameValue {
-      Style: (FontSize: 15, TextColor: #f4f0d7, HorizontalAlignment: Right);
+      Style: (FontSize: 15, TextColor: #f4f0d7);
       Anchor: (Top: 126, Right: 48, Width: 180, Height: 22);
     }
 
@@ -35,7 +35,7 @@ Group {
     }
 
     Label #SkillXpValue {
-      Style: (FontSize: 15, TextColor: #f4f0d7, HorizontalAlignment: Right);
+      Style: (FontSize: 15, TextColor: #f4f0d7);
       Anchor: (Top: 154, Right: 48, Width: 180, Height: 22);
     }
 
@@ -46,7 +46,7 @@ Group {
     }
 
     Label #SkillLevelValue {
-      Style: (FontSize: 15, TextColor: #f4f0d7, HorizontalAlignment: Right);
+      Style: (FontSize: 15, TextColor: #f4f0d7);
       Anchor: (Top: 182, Right: 48, Width: 180, Height: 22);
     }
 
