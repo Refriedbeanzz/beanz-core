@@ -1,5 +1,8 @@
 package com.beanz.core;
 
+import com.beanz.core.skills.PlayerSkillsComponent;
+import com.beanz.core.skills.SkillSnapshot;
+import com.beanz.core.skills.SkillType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
@@ -11,7 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class BeanzCommand extends AbstractPlayerCommand {
     public BeanzCommand() {
-        super("beanz", "Open the Beanz test menu");
+        super("beanz", "Open the BeanzSkillz menu");
     }
 
     @Override
@@ -23,6 +26,9 @@ public class BeanzCommand extends AbstractPlayerCommand {
         World world
     ) {
         Player player = store.getComponent(ref, Player.getComponentType());
-        player.getPageManager().openCustomPage(ref, store, new BeanzMenuPage(playerRef));
+        PlayerSkillsComponent skills = BeanzCoreMod.getInstance().getOrCreateSkills(playerRef);
+        SkillSnapshot jumpSnapshot = skills.snapshot(SkillType.JUMP);
+
+        player.getPageManager().openCustomPage(ref, store, new BeanzMenuPage(playerRef, jumpSnapshot));
     }
 }

@@ -1,0 +1,58 @@
+$C = "../Common.ui";
+
+Group {
+  LayoutMode: Center;
+
+  Group #Panel {
+    Anchor: (Width: 440, Height: 280);
+    LayoutMode: Top;
+
+    Label #Title {
+      Style: (FontSize: 28, TextColor: #f4f0d7, HorizontalAlignment: Center);
+      Anchor: (Top: 26, Left: 24, Right: 24, Height: 36);
+    }
+
+    Label #Body {
+      Style: (FontSize: 16, TextColor: #e5dfc8, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 74, Left: 36, Right: 36, Height: 42);
+    }
+
+    Label #SkillNameLabel {
+      Text: "Skill";
+      Style: (FontSize: 15, TextColor: #b8c0bf);
+      Anchor: (Top: 126, Left: 48, Width: 120, Height: 22);
+    }
+
+    Label #SkillNameValue {
+      Style: (FontSize: 15, TextColor: #f4f0d7, HorizontalAlignment: Right);
+      Anchor: (Top: 126, Right: 48, Width: 180, Height: 22);
+    }
+
+    Label #SkillXpLabel {
+      Text: "Current XP";
+      Style: (FontSize: 15, TextColor: #b8c0bf);
+      Anchor: (Top: 154, Left: 48, Width: 120, Height: 22);
+    }
+
+    Label #SkillXpValue {
+      Style: (FontSize: 15, TextColor: #f4f0d7, HorizontalAlignment: Right);
+      Anchor: (Top: 154, Right: 48, Width: 180, Height: 22);
+    }
+
+    Label #SkillLevelLabel {
+      Text: "Current Level";
+      Style: (FontSize: 15, TextColor: #b8c0bf);
+      Anchor: (Top: 182, Left: 48, Width: 120, Height: 22);
+    }
+
+    Label #SkillLevelValue {
+      Style: (FontSize: 15, TextColor: #f4f0d7, HorizontalAlignment: Right);
+      Anchor: (Top: 182, Right: 48, Width: 180, Height: 22);
+    }
+
+    Label #Footer {
+      Style: (FontSize: 13, TextColor: #b8c0bf, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 222, Left: 36, Right: 36, Height: 34);
+    }
+  }
+}
