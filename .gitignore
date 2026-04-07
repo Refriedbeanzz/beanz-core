@@ -26,6 +26,8 @@ replay_pid*
 # Gradle
 .gradle/
 build/
+!dist/
+!dist/*.jar
 
 # IntelliJ
 .idea/
