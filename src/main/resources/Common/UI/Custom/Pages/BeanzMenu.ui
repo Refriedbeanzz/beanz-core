@@ -1,58 +1,79 @@
 $C = "../Common.ui";
 
 Group {
-  LayoutMode: Center;
+  Background: (Color: #06080cb8);
+  Anchor: (Top: 0, Left: 0, Right: 0, Bottom: 0);
 
   Group #Panel {
-    Anchor: (Width: 440, Height: 280);
-    LayoutMode: Top;
+    Background: (Color: #0d1320f1);
+    Anchor: (Top: 64, Left: 110, Width: 640, Height: 430);
 
     Label #Title {
+      Text: "BeanzSkillz";
       Style: (FontSize: 28, TextColor: #f4f0d7, HorizontalAlignment: Center);
-      Anchor: (Top: 26, Left: 24, Right: 24, Height: 36);
+      Anchor: (Top: 26, Left: 34, Right: 34, Height: 34);
     }
 
     Label #Body {
-      Style: (FontSize: 16, TextColor: #e5dfc8, HorizontalAlignment: Center, Wrap: true);
-      Anchor: (Top: 74, Left: 36, Right: 36, Height: 42);
+      Text: "Skill overview";
+      Style: (FontSize: 15, TextColor: #c9d3e3, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 68, Left: 54, Right: 54, Height: 40);
     }
 
-    Label #SkillNameLabel {
-      Text: "Skill";
-      Style: (FontSize: 15, TextColor: #b8c0bf);
-      Anchor: (Top: 126, Left: 48, Width: 120, Height: 22);
+    Group #SkillsFrame {
+      Background: (Color: #152235f0);
+      Anchor: (Top: 136, Left: 38, Width: 564, Height: 184);
     }
 
-    Label #SkillNameValue {
-      Style: (FontSize: 15, TextColor: #f4f0d7);
-      Anchor: (Top: 126, Right: 48, Width: 180, Height: 22);
+    Label #SkillsHeader {
+      Text: "Skills";
+      Style: (FontSize: 14, TextColor: #7f91ac);
+      Anchor: (Top: 150, Left: 56, Width: 120, Height: 18);
     }
 
-    Label #SkillXpLabel {
-      Text: "Current XP";
-      Style: (FontSize: 15, TextColor: #b8c0bf);
-      Anchor: (Top: 154, Left: 48, Width: 120, Height: 22);
+    Group #SkillEntryCard {
+      Background: (Color: #1a2b44f2);
+      Anchor: (Top: 184, Left: 56, Width: 528, Height: 106);
     }
 
-    Label #SkillXpValue {
-      Style: (FontSize: 15, TextColor: #f4f0d7);
-      Anchor: (Top: 154, Right: 48, Width: 180, Height: 22);
+    Label #SkillEntryName {
+      Text: "Jump";
+      Style: (FontSize: 19, TextColor: #f4f0d7);
+      Anchor: (Top: 198, Left: 76, Width: 220, Height: 22);
     }
 
-    Label #SkillLevelLabel {
-      Text: "Current Level";
-      Style: (FontSize: 15, TextColor: #b8c0bf);
-      Anchor: (Top: 182, Left: 48, Width: 120, Height: 22);
+    Label #SkillEntryLevel {
+      Text: "Lvl 1";
+      Style: (FontSize: 18, TextColor: #8dd1ff);
+      Anchor: (Top: 198, Left: 452, Width: 110, Height: 22);
     }
 
-    Label #SkillLevelValue {
-      Style: (FontSize: 15, TextColor: #f4f0d7);
-      Anchor: (Top: 182, Right: 48, Width: 180, Height: 22);
+    Label #SkillEntryXp {
+      Text: "Total XP: 0";
+      Style: (FontSize: 14, TextColor: #aebdce);
+      Anchor: (Top: 228, Left: 76, Width: 240, Height: 18);
+    }
+
+    Label #SkillEntryProgressText {
+      Text: "0 / 10 XP to Level 2";
+      Style: (FontSize: 13, TextColor: #dbe8f7);
+      Anchor: (Top: 254, Left: 76, Width: 300, Height: 18);
+    }
+
+    Group #SkillEntryProgressBar {
+      Background: (Color: #0b1220ff);
+      Anchor: (Top: 252, Left: 76, Width: 388, Height: 12);
+
+      Group #SkillEntryFill {
+        Background: (Color: #48b7ff);
+        Anchor: (Top: 0, Left: 0, Width: 0, Height: 12);
+      }
     }
 
     Label #Footer {
-      Style: (FontSize: 13, TextColor: #b8c0bf, HorizontalAlignment: Center, Wrap: true);
-      Anchor: (Top: 222, Left: 36, Right: 36, Height: 34);
+      Text: "Jump levels steadily improve mobility. Higher levels also cut down incoming fall damage.";
+      Style: (FontSize: 13, TextColor: #9fb1c7, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 342, Left: 40, Right: 40, Height: 42);
     }
   }
 }
