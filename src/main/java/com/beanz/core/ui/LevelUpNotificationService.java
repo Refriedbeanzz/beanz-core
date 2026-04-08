@@ -1,62 +1,82 @@
 package com.beanz.core.ui;
 
 import com.beanz.core.skills.SkillType;
+import com.beanz.core.skills.PlayerSkillsComponent;
 import com.google.common.flogger.FluentLogger;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.io.PacketHandler;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.util.NotificationUtil;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class LevelUpNotificationService {
     private static final FluentLogger LOGGER = FluentLogger.forEnclosingClass();
-    private static final long DISPLAY_DURATION_MS = 2600L;
-    private final Map<PlayerRef, LevelUpNotificationHud> huds = new ConcurrentHashMap<>();
-    private final Map<PlayerRef, ScheduledFuture<?>> pendingHides = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread thread = new Thread(r, "beanz-levelup-hud");
-        thread.setDaemon(true);
-        return thread;
-    });
+    private final Map<PlayerRef, Map<SkillType, Integer>> lastShownLevels = new ConcurrentHashMap<>();
 
-    public void notifyLevelUp(Player player, SkillType skillType, int level) {
+    public void notifyLevelUp(Player player, PlayerSkillsComponent skills, SkillType skillType, int level) {
         if (player == null || player.getPlayerRef() == null) {
+            LOGGER.atWarning().log(
+                "Skipping level-up notification because player or PlayerRef is unavailable (skill=%s, level=%s)",
+                skillType,
+                level
+            );
             return;
         }
 
         PlayerRef playerRef = player.getPlayerRef();
-        LevelUpNotificationHud hud = huds.computeIfAbsent(playerRef, ref -> {
-            LevelUpNotificationHud created = new LevelUpNotificationHud(ref);
-            player.getHudManager().setCustomHud(ref, created);
-            created.show();
-            return created;
-        });
+        if (skills != null && !skills.isNotificationEnabled(skillType)) {
+            LOGGER.atInfo().log(
+                "Level-up notification suppressed for %s: skill=%s, level=%s (notifications disabled)",
+                playerRef,
+                skillType,
+                level
+            );
+            return;
+        }
 
-        cancelPendingHide(playerRef);
-        hud.showNotification(skillType.name().charAt(0) + skillType.name().substring(1).toLowerCase() + " increased to Level " + level, "Keep training to unlock stronger passive bonuses.");
-        hud.pushUpdate();
+        Map<SkillType, Integer> playerLevels = lastShownLevels.computeIfAbsent(playerRef, ref -> new ConcurrentHashMap<>());
+        Integer lastShownLevel = playerLevels.get(skillType);
+        if (lastShownLevel != null && lastShownLevel == level) {
+            LOGGER.atInfo().log(
+                "Skipping duplicate level-up notification for %s: skill=%s, level=%s",
+                playerRef,
+                skillType,
+                level
+            );
+            return;
+        }
 
-        LOGGER.atInfo().log(
-            "Showing level-up notification for %s: skill=%s, level=%s",
-            playerRef,
-            skillType,
-            level
+        PacketHandler packetHandler = player.getPlayerConnection();
+        if (packetHandler == null) {
+            LOGGER.atWarning().log(
+                "Unable to display level-up notification for %s: skill=%s, level=%s because PacketHandler is null",
+                playerRef,
+                skillType,
+                level
+            );
+            return;
+        }
+
+        playerLevels.put(skillType, level);
+        String skillName = skillType.name().charAt(0) + skillType.name().substring(1).toLowerCase(Locale.ROOT);
+        String title = skillName + " increased to Level " + level;
+        String subtitle = "Keep training to unlock stronger passive bonuses.";
+
+        NotificationUtil.sendNotification(
+            packetHandler,
+            Message.raw(title).color("#6fd0ff").bold(true),
+            Message.raw(subtitle).color("#d8e4f2")
         );
 
-        ScheduledFuture<?> hideFuture = scheduler.schedule(() -> {
-            hud.hideNotification();
-            hud.pushUpdate();
-        }, DISPLAY_DURATION_MS, TimeUnit.MILLISECONDS);
-        pendingHides.put(playerRef, hideFuture);
-    }
-
-    private void cancelPendingHide(PlayerRef playerRef) {
-        ScheduledFuture<?> existing = pendingHides.remove(playerRef);
-        if (existing != null) {
-            existing.cancel(false);
-        }
+        LOGGER.atInfo().log(
+            "Displaying level-up notification for %s: skill=%s, level=%s, title=%s",
+            playerRef,
+            skillType,
+            level,
+            title
+        );
     }
 }

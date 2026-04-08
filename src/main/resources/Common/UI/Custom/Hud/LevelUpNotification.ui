@@ -4,18 +4,18 @@ Group {
   Group #LevelToast {
     Visible: false;
     Background: (Color: #112138ef);
-    Anchor: (Top: 24, Left: 230, Width: 360, Height: 84);
-  }
+    Anchor: (Top: 24, Left: 190, Width: 440, Height: 96);
 
-  Label #LevelToastTitle {
-    Text: "Jump increased to Level 2";
-    Style: (FontSize: 20, TextColor: #f2f6fb, HorizontalAlignment: Center);
-    Anchor: (Top: 40, Left: 248, Width: 324, Height: 24);
-  }
+    Label #LevelToastTitle {
+      Text: "Jump increased to Level 2";
+      Style: (FontSize: 20, TextColor: #f2f6fb, HorizontalAlignment: Center);
+      Anchor: (Top: 16, Left: 20, Width: 400, Height: 24);
+    }
 
-  Label #LevelToastSubtitle {
-    Text: "Keep training to unlock stronger passive bonuses.";
-    Style: (FontSize: 13, TextColor: #b7c8da, HorizontalAlignment: Center, Wrap: true);
-    Anchor: (Top: 66, Left: 248, Width: 324, Height: 28);
+    Label #LevelToastSubtitle {
+      Text: "Keep training to unlock stronger passive bonuses.";
+      Style: (FontSize: 13, TextColor: #b7c8da, HorizontalAlignment: Center, Wrap: true);
+      Anchor: (Top: 46, Left: 20, Width: 400, Height: 34);
+    }
   }
 }

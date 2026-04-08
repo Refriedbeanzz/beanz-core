@@ -14,12 +14,19 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
         .add()
         .append(new KeyedCodec<>("JumpLevel", Codec.INTEGER), PlayerSkillsComponent::setJumpLevel, PlayerSkillsComponent::getJumpLevel)
         .add()
+        .append(
+            new KeyedCodec<>("JumpNotificationsEnabled", Codec.BOOLEAN),
+            PlayerSkillsComponent::setJumpNotificationsEnabled,
+            PlayerSkillsComponent::isJumpNotificationsEnabled
+        )
+        .add()
         .build();
 
     private static ComponentType<EntityStore, PlayerSkillsComponent> componentType;
 
     private int jumpXp;
     private int jumpLevel = 1;
+    private boolean jumpNotificationsEnabled = true;
 
     public static ComponentType<EntityStore, PlayerSkillsComponent> getComponentType() {
         return componentType;
@@ -58,6 +65,18 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
         setLevel(skillType, SkillLevelTable.getLevelForXp(getXp(skillType)));
     }
 
+    public boolean isNotificationEnabled(SkillType skillType) {
+        return switch (skillType) {
+            case JUMP -> jumpNotificationsEnabled;
+        };
+    }
+
+    public void setNotificationEnabled(SkillType skillType, boolean enabled) {
+        switch (skillType) {
+            case JUMP -> jumpNotificationsEnabled = enabled;
+        }
+    }
+
     public SkillSnapshot snapshot(SkillType skillType) {
         return SkillSnapshot.from(skillType, getXp(skillType), getLevel(skillType));
     }
@@ -78,11 +97,20 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
         this.jumpLevel = jumpLevel;
     }
 
+    public boolean isJumpNotificationsEnabled() {
+        return jumpNotificationsEnabled;
+    }
+
+    public void setJumpNotificationsEnabled(boolean jumpNotificationsEnabled) {
+        this.jumpNotificationsEnabled = jumpNotificationsEnabled;
+    }
+
     @Override
     public PlayerSkillsComponent clone() {
         PlayerSkillsComponent copy = new PlayerSkillsComponent();
         copy.jumpXp = this.jumpXp;
         copy.jumpLevel = this.jumpLevel;
+        copy.jumpNotificationsEnabled = this.jumpNotificationsEnabled;
         return copy;
     }
 }

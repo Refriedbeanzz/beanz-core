@@ -2,7 +2,9 @@ package com.beanz.core;
 
 import com.beanz.core.skills.JumpSkillSystem;
 import com.beanz.core.skills.JumpFallDamageSystem;
+import com.beanz.core.skills.JumpAbilityStateComponent;
 import com.beanz.core.skills.PlayerSkillsComponent;
+import com.beanz.core.skills.SkillLevelTable;
 import com.beanz.core.skills.SkillService;
 import com.beanz.core.skills.SkillSnapshot;
 import com.beanz.core.skills.SkillType;
@@ -23,7 +25,8 @@ import java.nio.file.Paths;
 
 public class BeanzCoreMod extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
-    private static final String JUMP_RESET_MARKER = "beanzskillz_jump_reset_v1.marker";
+    private static final String JUMP_RESET_MARKER = "beanzskillz_jump_reset_v2.marker";
+    private static final String JUMP_TEST_BOOST_MARKER = "beanzskillz_jump_test_level_100_v1.marker";
     private static BeanzCoreMod instance;
     private final SkillService skillService = new SkillService();
     private final LevelUpNotificationService levelUpNotificationService = new LevelUpNotificationService();
@@ -63,6 +66,13 @@ public class BeanzCoreMod extends JavaPlugin {
                 PlayerSkillsComponent.CODEC
             )
         );
+        JumpAbilityStateComponent.setComponentType(
+            getEntityStoreRegistry().registerComponent(
+                JumpAbilityStateComponent.class,
+                "beanz:jump_ability_state",
+                JumpAbilityStateComponent.CODEC
+            )
+        );
         getEntityStoreRegistry().registerSystem(new JumpSkillSystem());
         getEntityStoreRegistry().registerSystem(new JumpFallDamageSystem());
         getEventRegistry().register(PlayerConnectEvent.class, this::onPlayerConnect);
@@ -73,7 +83,15 @@ public class BeanzCoreMod extends JavaPlugin {
 
     private void onPlayerConnect(PlayerConnectEvent event) {
         PlayerSkillsComponent skills = getOrCreateSkills(event.getPlayerRef(), event.getHolder());
+        JumpAbilityStateComponent jumpState = event.getHolder().getComponent(JumpAbilityStateComponent.getComponentType());
+        if (jumpState == null) {
+            jumpState = new JumpAbilityStateComponent();
+            event.getHolder().addComponent(JumpAbilityStateComponent.getComponentType(), jumpState);
+        }
+        jumpState.resetAirAbilities();
+        jumpState.setWasGrounded(true);
         runOneTimeJumpReset(skills, event.getPlayerRef());
+        runOneTimeJumpTestBoost(skills, event.getPlayerRef());
         SkillSnapshot jumpSnapshot = skillService.getSnapshot(skills, SkillType.JUMP);
 
         LOGGER.atInfo().log(
@@ -104,6 +122,34 @@ public class BeanzCoreMod extends JavaPlugin {
         } catch (IOException exception) {
             LOGGER.atWarning().withCause(exception).log(
                 "Applied Jump reset for %s but failed to write reset marker at %s",
+                playerRef != null ? playerRef.getUsername() : "unknown-player",
+                markerPath
+            );
+        }
+    }
+
+    private void runOneTimeJumpTestBoost(PlayerSkillsComponent skills, PlayerRef playerRef) {
+        Path markerPath = Paths.get(System.getenv("APPDATA"), "Hytale", "UserData", JUMP_TEST_BOOST_MARKER);
+
+        if (Files.exists(markerPath)) {
+            return;
+        }
+
+        int level100Xp = SkillLevelTable.getXpRequiredForLevel(100);
+        skills.setJumpXp(level100Xp);
+        skills.setJumpLevel(100);
+
+        try {
+            Files.writeString(markerPath, "Jump test boost to level 100 applied for " + (playerRef != null ? playerRef.getUsername() : "unknown-player"));
+            LOGGER.atInfo().log(
+                "Applied one-time Jump test boost for %s (xp=%s, level=100). Marker created at %s",
+                playerRef != null ? playerRef.getUsername() : "unknown-player",
+                level100Xp,
+                markerPath
+            );
+        } catch (IOException exception) {
+            LOGGER.atWarning().withCause(exception).log(
+                "Applied Jump test boost for %s but failed to write marker at %s",
                 playerRef != null ? playerRef.getUsername() : "unknown-player",
                 markerPath
             );

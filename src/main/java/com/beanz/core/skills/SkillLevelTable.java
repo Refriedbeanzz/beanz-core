@@ -1,6 +1,7 @@
 package com.beanz.core.skills;
 
 public final class SkillLevelTable {
+    private static final int MAX_LEVEL = 100;
     private static final int[] LEVEL_THRESHOLDS = buildThresholds();
 
     private SkillLevelTable() {
@@ -22,6 +23,15 @@ public final class SkillLevelTable {
     public static int getXpRequiredForLevel(int level) {
         int clampedLevel = Math.max(1, Math.min(LEVEL_THRESHOLDS.length, level));
         return LEVEL_THRESHOLDS[clampedLevel - 1];
+    }
+
+    public static int getXpToNextLevel(int currentLevel) {
+        int clampedLevel = Math.max(1, Math.min(MAX_LEVEL, currentLevel));
+        if (clampedLevel >= MAX_LEVEL) {
+            return 0;
+        }
+
+        return (int) Math.round(20 + (0.9 * clampedLevel * clampedLevel));
     }
 
     public static LevelProgress getProgress(int xp) {
@@ -46,31 +56,15 @@ public final class SkillLevelTable {
     }
 
     private static int[] buildThresholds() {
-        int[] thresholds = new int[100];
+        int[] thresholds = new int[MAX_LEVEL];
+        thresholds[0] = 0;
 
-        addCurveRange(thresholds, 1, 25, 0, 500, 1.25);
-        addCurveRange(thresholds, 25, 50, 500, 1500, 1.40);
-        addCurveRange(thresholds, 50, 75, 1500, 4500, 1.60);
-        addCurveRange(thresholds, 75, 90, 4500, 12000, 1.85);
-        addCurveRange(thresholds, 90, 100, 12000, 30000, 2.20);
+        int runningXp = 0;
+        for (int level = 2; level <= MAX_LEVEL; level++) {
+            runningXp += getXpToNextLevel(level - 1);
+            thresholds[level - 1] = runningXp;
+        }
 
         return thresholds;
-    }
-
-    private static void addCurveRange(
-        int[] thresholds,
-        int startLevel,
-        int endLevel,
-        int startXp,
-        int endXp,
-        double exponent
-    ) {
-        int span = endLevel - startLevel;
-
-        for (int level = startLevel; level <= endLevel; level++) {
-            double progress = span == 0 ? 0.0 : (level - startLevel) / (double) span;
-            double curvedProgress = Math.pow(progress, exponent);
-            thresholds[level - 1] = (int) Math.round(startXp + ((endXp - startXp) * curvedProgress));
-        }
     }
 }
