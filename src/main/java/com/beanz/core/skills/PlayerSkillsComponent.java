@@ -35,21 +35,31 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
         };
     }
 
+    public void setXp(SkillType skillType, int xp) {
+        switch (skillType) {
+            case JUMP -> jumpXp = xp;
+        }
+    }
+
     public int getLevel(SkillType skillType) {
         return switch (skillType) {
             case JUMP -> jumpLevel;
         };
     }
 
-    public void addXp(SkillType skillType, int amount) {
-        if (skillType == SkillType.JUMP) {
-            jumpXp += amount;
-            jumpLevel = SkillLevelTable.getLevelForXp(jumpXp);
+    public void setLevel(SkillType skillType, int level) {
+        switch (skillType) {
+            case JUMP -> jumpLevel = level;
         }
     }
 
+    public void addXp(SkillType skillType, int amount) {
+        setXp(skillType, getXp(skillType) + amount);
+        setLevel(skillType, SkillLevelTable.getLevelForXp(getXp(skillType)));
+    }
+
     public SkillSnapshot snapshot(SkillType skillType) {
-        return new SkillSnapshot(skillType.displayName(), getXp(skillType), getLevel(skillType));
+        return SkillSnapshot.from(skillType, getXp(skillType), getLevel(skillType));
     }
 
     public int getJumpXp() {
