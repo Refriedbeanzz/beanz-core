@@ -398,3 +398,19 @@ Core combat interaction.
   "Failed": "MyFailInteraction"
 }
 ```
+
+---
+
+## Ability Execution Context (Important)
+
+Ability triggers are NOT global.
+
+They depend on the item context:
+
+- Main hand abilities override offhand abilities
+- Offhand abilities only execute when not overridden
+
+This aligns with how the interaction system resolves actions based on the held item context.
+
+Design systems must account for:
+-> single active ability source at a time

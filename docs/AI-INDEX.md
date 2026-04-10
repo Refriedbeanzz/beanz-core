@@ -52,12 +52,10 @@ These rules define how responses should be structured for this project.
 
 ---
 
-### Current Project Focus
-
-- Hytale mod: Beanz Core
-- Building custom:
-  - Skill system (working)
-  - Ability system (in progress)
+## Current Focus
+- Double jump system
+- Ability system behavior confirmed (main-hand priority / offhand utility model)
+- Designing mobility ability framework (Sky Leap)
 
 ---
 
