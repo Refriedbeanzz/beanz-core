@@ -1,5 +1,7 @@
 package com.beanz.core.skills;
 
+import com.beanz.core.BeanzCoreMod;
+import com.beanz.core.abilities.PlayerAbilityData;
 import com.google.common.flogger.FluentLogger;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -35,6 +37,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
     private static final double WALL_NORMAL_Y_LIMIT = 0.35;
     private static final String STAMINA_STAT_ID = "stamina";
     private static final int WALL_CONTACT_GRACE_TICKS = 6;
+    private static final int BUFFERED_DOUBLE_JUMP_PRESS_TICKS = 6;
 
     @Override
     public Query<EntityStore> getQuery() {
@@ -47,6 +50,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             PlayerInput.getComponentType(),
             EntityStatMap.getComponentType(),
             PlayerSkillsComponent.getComponentType(),
+            PlayerAbilityData.getComponentType(),
             JumpAbilityStateComponent.getComponentType(),
             Velocity.getComponentType()
         );
@@ -72,24 +76,59 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         PlayerInput playerInput = chunk.getComponent(index, PlayerInput.getComponentType());
         EntityStatMap statMap = chunk.getComponent(index, EntityStatMap.getComponentType());
         PlayerSkillsComponent skills = chunk.getComponent(index, PlayerSkillsComponent.getComponentType());
+        PlayerAbilityData abilityData = chunk.getComponent(index, PlayerAbilityData.getComponentType());
         JumpAbilityStateComponent jumpState = chunk.getComponent(index, JumpAbilityStateComponent.getComponentType());
         Velocity velocity = chunk.getComponent(index, Velocity.getComponentType());
-        SkillService skillService = com.beanz.core.BeanzCoreMod.getInstance().getSkillService();
+        SkillService skillService = BeanzCoreMod.getInstance().getSkillService();
 
-        if (player == null || skills == null || jumpState == null || movementManager == null || statMap == null || velocity == null) {
+        if (player == null || skills == null || abilityData == null || jumpState == null || movementManager == null || statMap == null || velocity == null) {
             return;
         }
 
-        logAbilityUnlocks(ref, skills, skillService.getRewardService(), jumpState);
+        BeanzCoreMod.getInstance().syncAbilityUnlocks(player.getPlayerRef(), skills, abilityData);
+        boolean wasGroundedLastTick = jumpState.wasGrounded();
+        boolean jumpWasPressedLastTick = jumpState.wasJumpPressedLastTick();
         resetAirAbilitiesIfLanded(ref, current, jumpState);
-        updateWallContactState(current, collisionResultComponent, transformComponent, velocity, jumpState);
-
+        jumpState.trackAirborneState(current.onGround);
+        boolean jumpCurrentlyPressed = current.jumping;
         boolean movementJumpEdgeDetected = current.jumping && !previous.jumping;
-        boolean queuedJumpInputDetected = hasQueuedJumpInput(playerInput);
-        boolean jumpInputDetected = movementJumpEdgeDetected || queuedJumpInputDetected;
+        boolean jumpRisingEdge = jumpCurrentlyPressed && !jumpWasPressedLastTick;
+        boolean queuedJumpPressDetected = hasQueuedJumpInput(playerInput);
+        boolean queuedJumpReleaseDetected = hasQueuedJumpRelease(playerInput);
+        boolean newJumpPress = jumpRisingEdge || movementJumpEdgeDetected || queuedJumpPressDetected;
+        boolean jumpInputDetected = newJumpPress;
+        boolean justLeftGround = !current.onGround && wasGroundedLastTick;
+        boolean hasLeftGroundSinceInitialJump = jumpState.hasLeftGroundSinceInitialJump() || justLeftGround;
+
+        if (justLeftGround && !jumpState.hasLeftGroundSinceInitialJump()) {
+            jumpState.setHasLeftGroundSinceInitialJump(true);
+            LOGGER.atInfo().log(
+                "Player left ground for %s: airTicks=%s, jumpPressed=%s",
+                ref,
+                jumpState.getAirTicks(),
+                jumpCurrentlyPressed
+            );
+        }
+
+        boolean jumpReleasedNow = !jumpCurrentlyPressed || queuedJumpReleaseDetected;
+        if (!current.onGround && jumpState.hasLeftGroundSinceInitialJump() && jumpReleasedNow) {
+            if (!jumpState.hasJumpReleasedSinceGroundJump()) {
+                LOGGER.atInfo().log(
+                    "Jump released after takeoff for %s: jumpPressed=%s, queuedJumpReleaseDetected=%s",
+                    ref,
+                    jumpCurrentlyPressed,
+                    queuedJumpReleaseDetected
+                );
+            }
+            jumpState.setJumpReleasedSinceGroundJump(true);
+        }
+        boolean groundedJump = newJumpPress
+            && !hasLeftGroundSinceInitialJump
+            && (current.onGround || wasGroundedLastTick);
 
         if (!jumpInputDetected) {
             jumpState.setWasGrounded(current.onGround);
+            jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
             return;
         }
 
@@ -101,55 +140,47 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         double multiplier = rewardService.getJumpMultiplier(skills);
         double previousConfiguredJumpForce = settings.jumpForce;
         double fullJumpForce = baseJumpForce * multiplier;
-        boolean groundedJump = jumpState.wasGrounded();
-        boolean airborne = !groundedJump;
-        boolean wallJumpUnlocked = rewardService.hasWallJumpUnlocked(skills);
-        boolean doubleJumpUnlocked = rewardService.hasDoubleJumpUnlocked(skills);
-        boolean doubleJumpAvailable = doubleJumpUnlocked && !jumpState.hasUsedDoubleJump();
-        Vector3d wallNormal = jumpState.getRecentWallNormal();
-        boolean nearWall = jumpState.hasRecentWallContact() && wallNormal != null;
-        boolean wallJumpAvailable = wallJumpUnlocked && !jumpState.hasUsedWallJump() && nearWall;
-        JumpAbilityType abilityType = groundedJump
-            ? JumpAbilityType.GROUND
-            : resolveAirJumpType(skills, jumpState, wallNormal);
+        boolean airborne = !current.onGround;
+        boolean nearWall = false;
+        int wallContactTicks = 0;
+        JumpAbilityType abilityType = groundedJump ? JumpAbilityType.GROUND : null;
         String actionChosen = abilityType != null ? abilityType.name() : "NONE";
 
         LOGGER.atInfo().log(
-            "Jump ability input for %s: jumpInputDetected=%s, movementJumpEdgeDetected=%s, queuedJumpInputDetected=%s, airborne=%s, onGround=%s, doubleJumpUnlocked=%s, wallJumpUnlocked=%s, hasUsedDoubleJump=%s, nearWall=%s, wallContactTicks=%s, actionChosen=%s",
+            "Jump ability input for %s: jumpPressed=%s, jumpPressedLastTick=%s, movementJumpEdgeDetected=%s, queuedJumpPressDetected=%s, queuedJumpReleaseDetected=%s, newJumpPress=%s, jumpInputDetected=%s, hasLeftGroundSinceInitialJump=%s, jumpReleasedSinceTakeoff=%s, airborne=%s, onGround=%s, skyLeapUnlocked=%s, usedSkyLeapThisAirtime=%s, nearWall=%s, wallContactTicks=%s, actionChosen=%s",
             ref,
-            jumpInputDetected,
+            jumpCurrentlyPressed,
+            jumpWasPressedLastTick,
             movementJumpEdgeDetected,
-            queuedJumpInputDetected,
+            queuedJumpPressDetected,
+            queuedJumpReleaseDetected,
+            newJumpPress,
+            jumpInputDetected,
+            hasLeftGroundSinceInitialJump,
+            jumpState.hasJumpReleasedSinceGroundJump(),
             airborne,
             current.onGround,
-            doubleJumpUnlocked,
-            wallJumpUnlocked,
-            jumpState.hasUsedDoubleJump(),
+            abilityData.isUnlocked(com.beanz.core.abilities.AbilityType.SKY_LEAP),
+            jumpState.hasUsedSkyLeapThisAirtime(),
             nearWall,
-            jumpState.getRecentWallContactTicks(),
+            wallContactTicks,
             actionChosen
         );
         if (!groundedJump && abilityType == null) {
-            String ignoredReason = !doubleJumpAvailable && !wallJumpUnlocked
-                ? "no_air_unlocks"
-                : !doubleJumpAvailable && !wallJumpAvailable
-                    ? (wallJumpUnlocked ? "wall_jump_not_available" : "double_jump_already_used")
-                    : "no_matching_air_ability";
             LOGGER.atInfo().log(
-                "Air jump attempt ignored for %s: jumpInputDetected=%s, airborne=%s, onGround=%s, doubleJumpUnlocked=%s, wallJumpUnlocked=%s, hasUsedDoubleJump=%s, nearWall=%s, wallContactTicks=%s, actionChosen=%s, wallJumpBlockedReason=%s",
+                "Air jump attempt ignored for %s: newJumpPress=%s, airborne=%s, onGround=%s, hasLeftGroundSinceInitialJump=%s, jumpReleasedSinceTakeoff=%s, usedSkyLeapThisAirtime=%s, skyLeapUnlocked=%s, actionChosen=%s, blockedReason=air_ability_handled_by_ability3",
                 ref,
-                jumpInputDetected,
+                newJumpPress,
                 airborne,
                 current.onGround,
-                doubleJumpUnlocked,
-                wallJumpUnlocked,
-                jumpState.hasUsedDoubleJump(),
-                nearWall,
-                jumpState.getRecentWallContactTicks(),
-                actionChosen,
-                ignoredReason
+                hasLeftGroundSinceInitialJump,
+                jumpState.hasJumpReleasedSinceGroundJump(),
+                jumpState.hasUsedSkyLeapThisAirtime(),
+                abilityData.isUnlocked(com.beanz.core.abilities.AbilityType.SKY_LEAP),
+                actionChosen
             );
             jumpState.setWasGrounded(current.onGround);
+            jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
             return;
         }
         EntityStatValue staminaValue = statMap.get(STAMINA_STAT_ID);
@@ -227,6 +258,14 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             }
         }
 
+        if (abilityType == JumpAbilityType.GROUND) {
+            jumpState.markGroundJumpStarted();
+            LOGGER.atInfo().log(
+                "Initial ground jump registered for %s",
+                ref
+            );
+        }
+
         if (abilityType == JumpAbilityType.GROUND && Math.abs(previousConfiguredJumpForce - appliedJumpForce) > EPSILON) {
             settings.jumpForce = (float) appliedJumpForce;
             movementManager.update(player.getPlayerConnection());
@@ -247,33 +286,8 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             );
         }
 
-        boolean airAbilityApplied = false;
-        if (abilityType == JumpAbilityType.DOUBLE && bonusJumpAllowed) {
-            applyDoubleJump(ref, skills, jumpState, velocity, appliedJumpForce);
-            airAbilityApplied = true;
-        } else if (abilityType == JumpAbilityType.WALL && bonusJumpAllowed) {
-            airAbilityApplied = applyWallJump(ref, skills, jumpState, wallNormal, velocity, appliedJumpForce, rewardService);
-            if (!airAbilityApplied) {
-                blockedReason = "wall_not_found";
-                bonusJumpAllowed = false;
-            }
-        }
-
-        if (abilityType != JumpAbilityType.GROUND && !airAbilityApplied && abilityType != null) {
-            LOGGER.atInfo().log(
-                "Air jump attempt for %s did not apply movement: ability=%s, rawStamina=%.3f, exhaustedRecoveryActive=%s, bonusJumpAllowed=%s, jumpRatio=%.3f, finalJumpForce=%.3f, blockedReason=%s",
-                ref,
-                abilityType,
-                staminaBefore,
-                exhaustedRecoveryActive,
-                bonusJumpAllowed,
-                jumpRatio,
-                appliedJumpForce,
-                blockedReason
-            );
-        }
-
         SkillProgressionResult progression = skillService.awardXp(skills, SkillType.JUMP, XP_PER_JUMP);
+        BeanzCoreMod.getInstance().syncAbilityUnlocks(player.getPlayerRef(), skills, abilityData);
 
         if (progression.newLevel() > progression.previousLevel()) {
             LOGGER.atInfo().log(
@@ -308,6 +322,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         );
 
         jumpState.setWasGrounded(current.onGround);
+        jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
     }
 
     private void logAbilityUnlocks(
@@ -341,8 +356,12 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         JumpAbilityStateComponent jumpState
     ) {
         if (current.onGround && !jumpState.wasGrounded()) {
+            boolean usedSkyLeap = jumpState.hasUsedSkyLeapThisAirtime();
             jumpState.resetAirAbilities();
             LOGGER.atInfo().log("Reset Jump air abilities on landing for %s", ref);
+            if (usedSkyLeap) {
+                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP airtime reset for %s", ref);
+            }
         }
     }
 
@@ -355,6 +374,22 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             if (update instanceof PlayerInput.SetMovementStates setMovementStates
                 && setMovementStates.movementStates() != null
                 && setMovementStates.movementStates().jumping) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasQueuedJumpRelease(PlayerInput playerInput) {
+        if (playerInput == null) {
+            return false;
+        }
+
+        for (Object update : playerInput.getMovementUpdateQueue()) {
+            if (update instanceof PlayerInput.SetMovementStates setMovementStates
+                && setMovementStates.movementStates() != null
+                && !setMovementStates.movementStates().jumping) {
                 return true;
             }
         }
@@ -379,24 +414,45 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         jumpState.tickRecentWallContact(current.onGround);
     }
 
-    private JumpAbilityType resolveAirJumpType(
-        PlayerSkillsComponent skills,
+    private SkillRewardService rewardService(SkillService skillService)
+    {
+        return skillService.getRewardService();
+    }
+
+    private boolean isDoubleJumpRequested(
+        MovementStates current,
+        boolean newJumpPress,
         JumpAbilityStateComponent jumpState,
-        Vector3d wallNormal
+        boolean doubleJumpUnlocked
     ) {
-        SkillRewardService rewardService = com.beanz.core.BeanzCoreMod.getInstance().getSkillService().getRewardService();
-
-        if (rewardService.hasWallJumpUnlocked(skills)
-            && !jumpState.hasUsedWallJump()
-            && wallNormal != null) {
-            return JumpAbilityType.WALL;
+        if (!doubleJumpUnlocked || jumpState.hasUsedDoubleJump() || current.onGround) {
+            return false;
         }
 
-        if (rewardService.hasDoubleJumpUnlocked(skills) && !jumpState.hasUsedDoubleJump()) {
-            return JumpAbilityType.DOUBLE;
+        boolean requested = newJumpPress
+            && jumpState.getAirTicks() > 0
+            && jumpState.hasLeftGroundSinceInitialJump()
+            && jumpState.hasJumpReleasedSinceGroundJump();
+        boolean bufferedRequest = jumpState.getBufferedDoubleJumpPressTicks() > 0
+            && jumpState.getAirTicks() > 1
+            && jumpState.hasLeftGroundSinceInitialJump();
+
+        requested = requested || bufferedRequest;
+
+        if (requested) {
+            LOGGER.atInfo().log(
+                "Airborne re-press detected: airborne=%s, airTicks=%s, newJumpPress=%s, bufferedRequest=%s, bufferedDoubleJumpPressTicks=%s, hasLeftGroundSinceInitialJump=%s, jumpReleasedSinceTakeoff=%s",
+                !current.onGround,
+                jumpState.getAirTicks(),
+                newJumpPress,
+                bufferedRequest,
+                jumpState.getBufferedDoubleJumpPressTicks(),
+                jumpState.hasLeftGroundSinceInitialJump(),
+                jumpState.hasJumpReleasedSinceGroundJump()
+            );
         }
 
-        return null;
+        return requested;
     }
 
     private double calculateAppliedJumpForce(
@@ -431,7 +487,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         double finalY = Math.max(previousY, 0.0) + appliedJumpForce;
         double finalZ = previousZ;
         applyAirVelocityInstruction(velocity, finalX, finalY, finalZ);
-        jumpState.setUsedDoubleJump(true);
+        jumpState.consumeDoubleJump(0);
 
         LOGGER.atInfo().log(
             "Double jump used for %s: level=%s, previousVelocity=(%.3f, %.3f, %.3f), appliedBoost=%.3f, finalVelocity=(%.3f, %.3f, %.3f), movementPath=velocity_instruction_set",

@@ -59,6 +59,54 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
             JumpAbilityStateComponent::getRecentWallNormalZ
         )
         .add()
+        .append(
+            new KeyedCodec<>("AirTicks", Codec.INTEGER),
+            JumpAbilityStateComponent::setAirTicks,
+            JumpAbilityStateComponent::getAirTicks
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("JumpReleasedSinceGroundJump", Codec.BOOLEAN),
+            JumpAbilityStateComponent::setJumpReleasedSinceGroundJump,
+            JumpAbilityStateComponent::hasJumpReleasedSinceGroundJump
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("JumpWasPressedLastTick", Codec.BOOLEAN),
+            JumpAbilityStateComponent::setJumpWasPressedLastTick,
+            JumpAbilityStateComponent::wasJumpPressedLastTick
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("HasLeftGroundSinceInitialJump", Codec.BOOLEAN),
+            JumpAbilityStateComponent::setHasLeftGroundSinceInitialJump,
+            JumpAbilityStateComponent::hasLeftGroundSinceInitialJump
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("DoubleTapWindowTicks", Codec.INTEGER),
+            JumpAbilityStateComponent::setDoubleTapWindowTicks,
+            JumpAbilityStateComponent::getDoubleTapWindowTicks
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("DoubleJumpCooldownTicks", Codec.INTEGER),
+            JumpAbilityStateComponent::setDoubleJumpCooldownTicks,
+            JumpAbilityStateComponent::getDoubleJumpCooldownTicks
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("UsedSkyLeapThisAirtime", Codec.BOOLEAN),
+            JumpAbilityStateComponent::setUsedSkyLeapThisAirtime,
+            JumpAbilityStateComponent::hasUsedSkyLeapThisAirtime
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("BufferedDoubleJumpPressTicks", Codec.INTEGER),
+            JumpAbilityStateComponent::setBufferedDoubleJumpPressTicks,
+            JumpAbilityStateComponent::getBufferedDoubleJumpPressTicks
+        )
+        .add()
         .build();
 
     private static ComponentType<EntityStore, JumpAbilityStateComponent> componentType;
@@ -71,6 +119,14 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
     private int recentWallContactTicks;
     private double recentWallNormalX;
     private double recentWallNormalZ;
+    private int airTicks;
+    private boolean jumpReleasedSinceGroundJump;
+    private boolean jumpWasPressedLastTick;
+    private boolean hasLeftGroundSinceInitialJump;
+    private int doubleTapWindowTicks;
+    private int doubleJumpCooldownTicks;
+    private boolean usedSkyLeapThisAirtime;
+    private int bufferedDoubleJumpPressTicks;
 
     public static ComponentType<EntityStore, JumpAbilityStateComponent> getComponentType() {
         return componentType;
@@ -181,9 +237,126 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         recentWallNormalZ = 0.0;
     }
 
+    public int getAirTicks() {
+        return airTicks;
+    }
+
+    public void setAirTicks(int airTicks) {
+        this.airTicks = airTicks;
+    }
+
+    public boolean hasJumpReleasedSinceGroundJump() {
+        return jumpReleasedSinceGroundJump;
+    }
+
+    public void setJumpReleasedSinceGroundJump(boolean jumpReleasedSinceGroundJump) {
+        this.jumpReleasedSinceGroundJump = jumpReleasedSinceGroundJump;
+    }
+
+    public void trackAirborneState(boolean onGround) {
+        if (onGround) {
+            airTicks = 0;
+            return;
+        }
+
+        airTicks++;
+    }
+
+    public void markGroundJumpStarted() {
+        airTicks = 0;
+        jumpReleasedSinceGroundJump = false;
+        hasLeftGroundSinceInitialJump = false;
+    }
+
+    public boolean wasJumpPressedLastTick() {
+        return jumpWasPressedLastTick;
+    }
+
+    public void setJumpWasPressedLastTick(boolean jumpWasPressedLastTick) {
+        this.jumpWasPressedLastTick = jumpWasPressedLastTick;
+    }
+
+    public boolean hasLeftGroundSinceInitialJump() {
+        return hasLeftGroundSinceInitialJump;
+    }
+
+    public void setHasLeftGroundSinceInitialJump(boolean hasLeftGroundSinceInitialJump) {
+        this.hasLeftGroundSinceInitialJump = hasLeftGroundSinceInitialJump;
+    }
+
+    public int getDoubleTapWindowTicks() {
+        return doubleTapWindowTicks;
+    }
+
+    public void setDoubleTapWindowTicks(int doubleTapWindowTicks) {
+        this.doubleTapWindowTicks = Math.max(0, doubleTapWindowTicks);
+    }
+
+    public int getDoubleJumpCooldownTicks() {
+        return doubleJumpCooldownTicks;
+    }
+
+    public void setDoubleJumpCooldownTicks(int doubleJumpCooldownTicks) {
+        this.doubleJumpCooldownTicks = Math.max(0, doubleJumpCooldownTicks);
+    }
+
+    public boolean hasUsedSkyLeapThisAirtime() {
+        return usedSkyLeapThisAirtime;
+    }
+
+    public void setUsedSkyLeapThisAirtime(boolean usedSkyLeapThisAirtime) {
+        this.usedSkyLeapThisAirtime = usedSkyLeapThisAirtime;
+    }
+
+    public int getBufferedDoubleJumpPressTicks() {
+        return bufferedDoubleJumpPressTicks;
+    }
+
+    public void setBufferedDoubleJumpPressTicks(int bufferedDoubleJumpPressTicks) {
+        this.bufferedDoubleJumpPressTicks = Math.max(0, bufferedDoubleJumpPressTicks);
+    }
+
+    public void tickDoubleJumpTimers(boolean onGround) {
+        if (doubleTapWindowTicks > 0) {
+            doubleTapWindowTicks--;
+        }
+        if (doubleJumpCooldownTicks > 0) {
+            doubleJumpCooldownTicks--;
+        }
+        if (bufferedDoubleJumpPressTicks > 0) {
+            bufferedDoubleJumpPressTicks--;
+        }
+        if (onGround) {
+            doubleTapWindowTicks = 0;
+            bufferedDoubleJumpPressTicks = 0;
+        }
+    }
+
+    public void armDoubleTapWindow(int ticks) {
+        doubleTapWindowTicks = Math.max(doubleTapWindowTicks, ticks);
+    }
+
+    public void consumeDoubleJump(int cooldownTicks) {
+        usedDoubleJump = true;
+        doubleTapWindowTicks = 0;
+        doubleJumpCooldownTicks = Math.max(doubleJumpCooldownTicks, cooldownTicks);
+        bufferedDoubleJumpPressTicks = 0;
+    }
+
+    public void bufferDoubleJumpPress(int ticks) {
+        bufferedDoubleJumpPressTicks = Math.max(bufferedDoubleJumpPressTicks, ticks);
+    }
+
     public void resetAirAbilities() {
         usedDoubleJump = false;
         usedWallJump = false;
+        usedSkyLeapThisAirtime = false;
+        airTicks = 0;
+        jumpReleasedSinceGroundJump = false;
+        jumpWasPressedLastTick = false;
+        hasLeftGroundSinceInitialJump = false;
+        doubleTapWindowTicks = 0;
+        bufferedDoubleJumpPressTicks = 0;
         clearRecentWallContact();
     }
 
@@ -198,6 +371,14 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         copy.recentWallContactTicks = this.recentWallContactTicks;
         copy.recentWallNormalX = this.recentWallNormalX;
         copy.recentWallNormalZ = this.recentWallNormalZ;
+        copy.airTicks = this.airTicks;
+        copy.jumpReleasedSinceGroundJump = this.jumpReleasedSinceGroundJump;
+        copy.jumpWasPressedLastTick = this.jumpWasPressedLastTick;
+        copy.hasLeftGroundSinceInitialJump = this.hasLeftGroundSinceInitialJump;
+        copy.doubleTapWindowTicks = this.doubleTapWindowTicks;
+        copy.doubleJumpCooldownTicks = this.doubleJumpCooldownTicks;
+        copy.usedSkyLeapThisAirtime = this.usedSkyLeapThisAirtime;
+        copy.bufferedDoubleJumpPressTicks = this.bufferedDoubleJumpPressTicks;
         return copy;
     }
 }
