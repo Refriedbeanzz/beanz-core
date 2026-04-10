@@ -1,0 +1,26 @@
+{
+  "TranslationProperties": {
+    "Name": "Beanz Ability3 Test Item",
+    "Description": "Hold this item and press Ability3."
+  },
+  "Icon": "Icons/ItemsGenerated/Recipe_Page.png",
+  "Categories": [
+    "Items.Recipes"
+  ],
+  "PlayerAnimationsId": "Item",
+  "Quality": "Common",
+  "Model": "Items/Consumables/Recipes/Recipe.blockymodel",
+  "Texture": "Items/Consumables/Recipes/Recipe_Texture.png",
+  "IconProperties": {
+    "Scale": 0.76,
+    "Rotation": [135, 135, 0],
+    "Translation": [-1, 5]
+  },
+  "Interactions": {
+    "Ability3": "Root_BeanzTestAbility"
+  },
+  "Tags": {
+    "Type": ["Consumable"],
+    "Family": ["BeanzTest"]
+  }
+}

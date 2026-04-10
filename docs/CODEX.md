@@ -1,35 +1,55 @@
-# Codex Rules
+## Documentation Update + Git Push Rules
 
-## Workflow
+After every meaningful development change, you MUST:
 
-1. Always read:
-   - /docs/AI-INDEX.md
-   - relevant /docs/hytale/* files
+1. Update documentation:
 
-2. Before coding:
-   - propose a plan
-   - identify affected files
+Append to:
+- /docs/dev/changes.md
+- /docs/dev/discoveries.md (ONLY for non-obvious findings)
 
-3. After coding:
-   - update /docs/dev/changes.md
-   - update discoveries ONLY if new insight
+2. Use this format:
 
-## Documentation Rules
+### changes.md entry format
+## [YYYY-MM-DD] <Short Title>
 
-- Be concise
-- Do not duplicate content
-- Prefer bullet points over paragraphs
-- Only log meaningful findings
+### Summary
+<1-2 sentence summary>
 
-## Code Rules
+### Details
+- bullet points of what was done
+- include decisions, debugging steps, or feature work
 
-- Follow existing system design
-- Do not introduce new patterns unless necessary
+---
 
-# Documentation Enforcement
+### discoveries.md entry format
+## [YYYY-MM-DD] <Short Title>
 
-After ANY meaningful work, you MUST:
+### Finding
+<clear statement of discovery>
 
-- Update /docs/dev/changes.md
+### Details
+- bullet points explaining evidence or behavior
+- only include non-obvious findings
 
-Failure to do this means the task is incomplete.
+---
+
+3. Do NOT:
+- rewrite or remove existing entries
+- include repetitive or low-value steps
+- include explanations outside the format
+
+4. After updating docs, you MUST commit and push:
+
+git add docs/dev/changes.md docs/dev/discoveries.md
+git commit -m "docs: update changes and discoveries"
+git push
+
+5. This is REQUIRED after:
+- implementing features
+- debugging sessions
+- architectural decisions
+- confirming engine behavior
+
+6. If no meaningful change occurred:
+- do NOT update docs

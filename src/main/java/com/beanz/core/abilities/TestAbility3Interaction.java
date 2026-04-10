@@ -8,12 +8,15 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.io.PacketHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInstantInteraction;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.util.NotificationUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class TestAbility3Interaction extends SimpleInstantInteraction {
@@ -25,7 +28,7 @@ public class TestAbility3Interaction extends SimpleInstantInteraction {
     private static final double TEST_UPWARD_BUMP = 3.5;
 
     public TestAbility3Interaction() {
-        super("Beanz_Ability3_Test");
+        super("Beanz_Test_Ability");
     }
 
     public TestAbility3Interaction(String id) {
@@ -44,6 +47,17 @@ public class TestAbility3Interaction extends SimpleInstantInteraction {
         LOGGER.atInfo().log("[BeanzCore][TestAbility] Ability3 fired successfully for %s", username);
         LOGGER.atInfo().log("[BeanzCore][InputDebug] working ability trigger reached");
         LOGGER.atInfo().log("[BeanzCore][InputDebug] ability=%s player=%s", interactionType, username);
+
+        if (player != null) {
+            PacketHandler packetHandler = player.getPlayerConnection();
+            if (packetHandler != null) {
+                NotificationUtil.sendNotification(
+                    packetHandler,
+                    Message.raw("Beanz Ability3 triggered").color("#6fd0ff").bold(true),
+                    Message.raw("Your custom test item fired successfully.").color("#d8e4f2")
+                );
+            }
+        }
 
         if (velocity == null) {
             LOGGER.atInfo().log("[BeanzCore][TestAbility] No velocity component found for %s; log-only proof", username);

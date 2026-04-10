@@ -1,117 +1,125 @@
-# AI Index (Start Here)
+## Project Context + Working Preferences
 
-## Project Overview
-Beanz Core is a Hytale mod focused on:
-- skill-based progression
-- custom abilities (starting with jump system)
-- interaction-driven mechanics
+### Repository
+Main project repository:
+https://github.com/Refriedbeanzz/beanz-core
 
----
-
-## Current Focus
-- Double jump system
-- Input detection issues (airborne press not registering correctly)
+Docs directory:
+https://github.com/Refriedbeanzz/beanz-core/tree/main/docs
 
 ---
 
-## Read These First
+### Conversation Preferences (CRITICAL)
 
-### Core Systems
-- /docs/hytale/interactions/interaction-reference.md
+These rules define how responses should be structured for this project.
 
-### Movement
-- /docs/hytale/movement/double-jump.md
-
-### Current Work
-- /docs/dev/tasks.md
-- /docs/dev/changes.md
-
-### Known Issues
-- /docs/dev/bugs.md
+- Keep responses **short and to the point**
+- Avoid long explanations unless explicitly requested
+- No unnecessary fluff or filler
 
 ---
 
-## Required Workflow
+### Troubleshooting Workflow
 
-Before making changes:
-1. Read relevant docs under /docs/hytale/
-2. Review current state in /docs/dev/changes.md and /docs/dev/tasks.md
-3. Propose a plan before implementing
-
-After making changes:
-1. Update documentation (see rules below)
-2. Ensure documentation reflects the current system state
-
-A task is NOT complete until documentation is updated.
+- Provide **ONLY ONE step at a time**
+- Wait for user to test and respond before continuing
+- Do NOT give multiple possible fixes at once
+- Each step must be:
+  - Clear
+  - Actionable
+  - Minimal
 
 ---
 
-## How to Work in This Repo
+### Iteration Style
 
-- Follow patterns defined in interaction docs
-- Do not invent new systems unless necessary
-- Keep logic aligned with interaction-based design
-
----
-
-## Notes
-
-- Double jump depends on detecting fresh input (not held input)
-- Airborne state handling is currently unreliable
+- User will paste logs/results after each step
+- Assistant should:
+  - Analyze result
+  - Provide next single step
+- Continue iteratively until resolved
 
 ---
 
-## Mandatory Documentation Rule
+### Development Philosophy
 
-After any significant change, Codex MUST:
-
-1. Update /docs/dev/changes.md
-
-2. If a non-obvious behavior was discovered:
-   - Update /docs/dev/discoveries.md
-
-3. If system behavior or design changed:
-   - Update the relevant file under /docs/hytale/
+- Prefer **working proof over perfect system**
+- Build **small → test → expand**
+- Do NOT over-engineer early systems
+- Separate systems cleanly:
+  - Skills = progression
+  - Abilities = execution
 
 ---
 
-## Definition of "Significant Change"
+### Current Project Focus
 
-- New feature implementation
-- Bug fix or debugging attempt
-- Change in system behavior
-- Discovery of engine behavior
-
----
-
-## Required Format for /docs/dev/changes.md
-
-All entries MUST follow this structure:
-
-## [DATE]
-
-### Task
-<what was attempted>
-
-### Result
-<what happened>
-
-### Findings
-<important insight>
-
-### Suspected Issue
-<if applicable>
-
-### Next Step
-<what should happen next>
+- Hytale mod: Beanz Core
+- Building custom:
+  - Skill system (working)
+  - Ability system (in progress)
 
 ---
 
-## Enforcement Rule
+### Current Critical Problem Area
 
-Failure to update documentation means the task is incomplete.
+- Ability input (Ability1/2/3) is not triggering reliably
+- Hytale uses:
+  - interaction system (item-based)
+  - NOT global key events
+- Input must be tied to valid interaction mapping
 
-Documentation must be:
-- concise
-- structured
-- non-duplicative
+---
+
+### Key Known Constraints (IMPORTANT)
+
+- Server does NOT receive raw key input
+- Ability inputs only fire if:
+  - a valid interaction exists
+  - the held item supports it
+- Packet watchers do NOT work without interaction existing first
+
+---
+
+### Preferred Debugging Approach
+
+- Always isolate the smallest test case
+- Example:
+  - Ability3 → simple log (no systems attached)
+- Only expand once proof is confirmed
+
+---
+
+### Documentation System Rules
+
+- changes.md = development steps, decisions, debugging
+- discoveries.md = confirmed non-obvious engine behavior
+- Never rewrite history, only append
+- Keep entries concise and structured
+
+---
+
+### Codex Integration
+
+- Codex updates docs after meaningful changes
+- Codex commits and pushes:
+  - changes.md
+  - discoveries.md
+
+---
+
+### Important Note for Future Sessions
+
+Do NOT assume previous context.
+
+Always:
+1. Review:
+   - /docs/AI-INDEX.md
+   - /docs/dev/changes.md
+   - /docs/dev/discoveries.md
+2. Then continue development
+
+This file is the source of truth for:
+- workflow
+- constraints
+- system design direction

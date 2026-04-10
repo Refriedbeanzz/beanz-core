@@ -1,10 +1,8 @@
 package com.beanz.core;
 
 import com.beanz.core.abilities.AbilityManager;
-import com.beanz.core.abilities.AbilityInteractionInjector;
 import com.beanz.core.abilities.PlayerAbilityData;
 import com.beanz.core.abilities.TestAbility3Interaction;
-import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent;
 import com.beanz.core.skills.JumpSkillSystem;
 import com.beanz.core.skills.JumpFallDamageSystem;
 import com.beanz.core.skills.JumpAbilityStateComponent;
@@ -18,10 +16,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.protocol.InteractionType;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
-import com.hypixel.hytale.server.core.modules.interaction.Interactions;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -31,18 +26,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Consumer;
 
 public class BeanzCoreMod extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String JUMP_RESET_MARKER = "beanzskillz_jump_reset_v2.marker";
     private static final String JUMP_TEST_BOOST_MARKER = "beanzskillz_jump_test_level_100_v1.marker";
-    public static final String TEST_ABILITY3_ROOT_INTERACTION_ID = "Root_BeanzAbility3Test";
     private static BeanzCoreMod instance;
     private final SkillService skillService = new SkillService();
     private final AbilityManager abilityManager = new AbilityManager();
     private final LevelUpNotificationService levelUpNotificationService = new LevelUpNotificationService();
-    private final AbilityInteractionInjector abilityInteractionInjector = new AbilityInteractionInjector();
 
     public BeanzCoreMod(JavaPluginInit init) {
         super(init);
@@ -97,12 +89,7 @@ public class BeanzCoreMod extends JavaPlugin {
                 PlayerAbilityData.CODEC
             )
         );
-        HytaleServer.get().getEventBus().register(
-            (Class) LoadedAssetsEvent.class,
-            (Consumer) (event -> abilityInteractionInjector.onItemsLoaded((LoadedAssetsEvent<?, ?, ?>) event))
-        );
-        LOGGER.atInfo().log("[BeanzCore][InputDebug] AbilityInteractionInjector registered");
-        getCodecRegistry(Interaction.CODEC).register("Beanz_Ability3_Test", TestAbility3Interaction.class, TestAbility3Interaction.CODEC);
+        getCodecRegistry(Interaction.CODEC).register("Beanz_Test_Ability", TestAbility3Interaction.class, TestAbility3Interaction.CODEC);
         getEntityStoreRegistry().registerSystem(new JumpSkillSystem());
         getEntityStoreRegistry().registerSystem(new JumpFallDamageSystem());
         getEventRegistry().register(PlayerConnectEvent.class, this::onPlayerConnect);
@@ -119,12 +106,6 @@ public class BeanzCoreMod extends JavaPlugin {
             jumpState = new JumpAbilityStateComponent();
             event.getHolder().addComponent(JumpAbilityStateComponent.getComponentType(), jumpState);
         }
-        Interactions interactions = event.getHolder().getComponent(Interactions.getComponentType());
-        if (interactions == null) {
-            interactions = new Interactions();
-            event.getHolder().addComponent(Interactions.getComponentType(), interactions);
-        }
-        interactions.setInteractionId(InteractionType.Ability3, TEST_ABILITY3_ROOT_INTERACTION_ID);
         jumpState.resetAirAbilities();
         jumpState.setWasGrounded(true);
         runOneTimeJumpReset(skills, event.getPlayerRef());
