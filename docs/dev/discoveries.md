@@ -53,3 +53,27 @@ The safest first proof for Ability3 is a dedicated custom item that explicitly m
   - one root interaction asset
   - one Java interaction codec
 - Makes Ability3 testing depend only on holding the custom item
+
+---
+
+## [2026-04-10] Interaction System Insight
+
+### Finding
+Hytale does not use traditional input event listeners; input is processed through interaction evaluation.
+
+### Details
+- Successful execution depends on conditions at evaluation time
+- Player state and current interaction context determine whether an action actually runs
+- This explains cases where airborne input is present but not detected or executed
+
+---
+
+## [2026-04-10] Argument Type System Insight
+
+### Finding
+Hytale commands use typed arguments instead of raw strings.
+
+### Details
+- Validation occurs before execution
+- Argument types support suggestions and auto-complete
+- This enables clean, structured command systems without manual parsing

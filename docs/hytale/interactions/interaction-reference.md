@@ -1,6 +1,6 @@
 # Hytale Interaction System Reference
 
-> Source: Hytale Modding Docs  
+> Source: Official Hytale Modding Docs  
 > Cleaned for internal dev use
 
 ---
@@ -10,6 +10,43 @@
 All interactions inherit from:
 
 `Interaction`
+
+---
+
+# Interaction System Fundamentals
+
+- Hytale uses an **interaction-driven** system, not traditional event listeners
+- Player input is resolved through **interaction evaluation**, not direct key events
+- Input alone does not guarantee an action will execute
+
+## Interaction Flow
+
+`Input -> Condition Evaluation -> Action Execution`
+
+- Inputs are interpreted through interaction definitions
+- Conditions determine whether an interaction triggers
+- Actions execute only when conditions pass
+
+## Conditions
+
+- Interactions rely on player state at evaluation time
+- Relevant state includes:
+  - grounded or airborne state
+  - movement state
+  - current interaction context
+- Interaction success depends on state when evaluation happens, not just when input begins
+
+## Input Handling Insight
+
+- Input is not `press = action`
+- Input must pass interaction conditions
+- Held vs fresh input may resolve differently depending on the interaction system
+
+## Conflict / Override Behavior
+
+- Multiple interactions may compete
+- Conditions and rules determine which interaction executes
+- Some interactions block, interrupt, or override default behavior
 
 ---
 
@@ -68,6 +105,12 @@ All interactions inherit from:
 | InterruptedBy | InteractionType[] | Cancels this |
 | Interrupting | InteractionType[] | Cancels others |
 
+## Notes
+
+- Rule checks are part of interaction evaluation
+- Competing interactions are resolved through conditions, blocking, and interruption rules
+- Root interactions can prevent or cancel other chains before default behavior continues
+
 ---
 
 # Interaction Types
@@ -107,6 +150,10 @@ Fails if conditions not met.
 - Running
 - Flying
 
+### Notes
+- Conditions are checked during interaction evaluation
+- State changes between input and evaluation can cause the interaction to fail
+
 ---
 
 ## FirstClick
@@ -117,6 +164,10 @@ Splits logic between tap vs hold.
 |------|------|
 | Click | Quick press |
 | Hold | Long press |
+
+### Notes
+- Fresh input and held input can route to different branches
+- This behavior is part of interaction evaluation, not a separate raw key listener
 
 ---
 
@@ -175,7 +226,7 @@ Runs interactions in order.
 
 ---
 
-# ⏱Cooldowns
+# Cooldowns
 
 ## Key Concepts
 
@@ -324,18 +375,19 @@ Core combat interaction.
 # Key Takeaways (IMPORTANT)
 
 - Everything is **interaction chains**
-- Flow control = your “programming language”
+- Flow control = your "programming language"
 - Charging + Chaining = advanced combat systems
 - Cooldowns are **shared state**
 - Selector = AOE / targeting system
+- Input resolution depends on interaction definitions, conditions, and timing
 
 ---
 
 # Dev Notes
 
-- `AddItem` is buggy → use `ModifyInventory`
+- `AddItem` is buggy -> use `ModifyInventory`
 - Charging can break cooldown logic if not handled
-- Interaction chains can fork heavily → watch performance
+- Interaction chains can fork heavily -> watch performance
 
 # Example: Simple Interaction Chain
 
@@ -345,3 +397,4 @@ Core combat interaction.
   "Next": "MyNextInteraction",
   "Failed": "MyFailInteraction"
 }
+```

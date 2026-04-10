@@ -110,3 +110,48 @@ Replaced runtime interaction injection with one dedicated Beanz test item wired 
   - server log
   - player notification
   - tiny upward bump for visible proof
+
+---
+
+## [2026-04-10] Ability3 Test Item -> SKY_LEAP Proof
+
+### Summary
+Converted the working dedicated Ability3 test item from a generic bump into a simple airborne-only SKY_LEAP proof.
+
+### Details
+- Kept the same item asset, root interaction, and interaction registration
+- Updated the Java handler to:
+  - block on ground
+  - apply a jump-force-style upward boost while airborne
+  - log SKY_LEAP use/block results
+- Still intentionally excludes skill gating, stamina, cooldowns, and Jump integration
+
+---
+
+[2026-04-10]
+Task
+Ingested official Hytale interaction system reference
+
+Result
+Updated interaction-reference.md with core system behavior and input handling model
+
+Findings
+Hytale uses interaction-based input resolution rather than direct input events, making timing and state conditions critical
+
+Next Step
+Align double jump implementation with interaction condition timing and input evaluation model
+
+---
+
+[2026-04-10]
+Task
+Ingested argument types documentation
+
+Result
+Added argument-types.md and documented command parsing system
+
+Findings
+Command inputs are strongly typed and validated before execution
+
+Next Step
+Refactor /beanz command to use typed arguments instead of manual parsing
