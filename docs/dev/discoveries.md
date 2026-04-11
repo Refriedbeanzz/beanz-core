@@ -101,3 +101,20 @@ No explicit AllowOffhand field was found in the item asset config, but utility i
 - `ItemUtility` has `Usable` and `Compatible`
 - `ItemWeapon` has `RenderDualWielded`
 - The existing Ability3 test item can be converted into a minimal utility-compatible item without changing its interaction mapping
+
+---
+
+## [2026-04-11] Ability3 Item Was Still On Legacy Force Path
+
+### Finding
+The working main-hand/off-hand Ability3 item was still invoking `TestAbility3Interaction`, which wrote a hardcoded jump boost directly and skipped the shared Jump skill force path in `AbilityManager.useSkyLeap(...)`.
+
+### Details
+- The item asset still points at `Beanz_Test_Ability`
+- `Beanz_Test_Ability` was registered to `TestAbility3Interaction`
+- That interaction applied `defaultSettings.jumpForce * 1.15` directly to velocity
+- Result:
+  - Ability input worked from both hands
+  - Jump skill level and level 100 force bonus no longer affected final SKY_LEAP force
+
+---

@@ -185,3 +185,24 @@ The only concrete offhand-related asset clue exposed by the server item config i
 
 Next Step
 Test whether the same Ability3 item can be placed in offhand and still fire there
+
+---
+
+## [2026-04-11] Restore Jump Skill Bonus In Ability3 Force Path
+
+### Summary
+Reconnected the main-hand/off-hand Ability3 trigger to the shared `AbilityManager` SKY_LEAP path so Jump skill bonuses apply again at the final velocity write.
+
+### Details
+- Confirmed the held-item Ability3 asset was still routed through `TestAbility3Interaction`
+- Confirmed that legacy interaction applied its own hardcoded upward force and bypassed `AbilityManager.useSkyLeap(...)`
+- Updated `TestAbility3Interaction` to delegate into `AbilityManager.useSkyLeap(...)` instead of writing velocity directly
+- Updated the final SKY_LEAP force calculation to log and apply:
+  - `finalJumpForce = baseJumpForce + skillBonus + abilityBonus`
+- Added final application debug logging for:
+  - `jumpLevel`
+  - `skillBonus`
+  - `abilityBonus`
+  - `finalJumpForce`
+
+---

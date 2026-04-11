@@ -150,25 +150,39 @@ public class AbilityManager {
             return false;
         }
 
-        double jumpRatio = Math.min(1.0, Math.max(0.0, staminaBefore / staminaCost));
+        double jumpRatio = staminaCost <= EPSILON
+            ? 1.0
+            : Math.min(1.0, Math.max(0.0, staminaBefore / staminaCost));
         double staminaUsed = Math.min(staminaBefore, staminaCost);
         float staminaAfter = statMap.subtractStatValue(staminaValue.getIndex(), (float) staminaUsed);
         statMap.update();
 
         MovementSettings defaultSettings = movementManager.getDefaultSettings();
         double baseJumpForce = defaultSettings.jumpForce;
-        double fullJumpForce = baseJumpForce * rewardService.getJumpMultiplier(skills) * rewardService.getDoubleJumpForceScale();
-        double appliedJumpForce = baseJumpForce + ((fullJumpForce - baseJumpForce) * jumpRatio);
+        int jumpLevel = skills.getLevel(SkillType.JUMP);
+        double skillAdjustedJumpForce = baseJumpForce * rewardService.getJumpMultiplier(skills);
+        double skillBonus = skillAdjustedJumpForce - baseJumpForce;
+        double abilityBonus = skillAdjustedJumpForce * rewardService.getDoubleJumpForceScale() * jumpRatio;
+        double finalJumpForce = baseJumpForce + skillBonus + abilityBonus;
 
         double previousX = velocity.getX();
         double previousY = velocity.getY();
         double previousZ = velocity.getZ();
-        double finalY = Math.max(previousY, 0.0) + appliedJumpForce;
+        double finalY = Math.max(previousY, 0.0) + finalJumpForce;
         Vector3d finalVelocity = new Vector3d(previousX, finalY, previousZ);
         velocity.getInstructions().clear();
         velocity.addInstruction(finalVelocity, new VelocityConfig(), ChangeVelocityType.Set);
         velocity.set(finalVelocity);
         velocity.setClient(finalVelocity);
+
+        LOGGER.atInfo().log(
+            "[BeanzCore][AbilityDebug] SKY_LEAP final force for %s: jumpLevel=%s, skillBonus=%.3f, abilityBonus=%.3f, finalJumpForce=%.3f",
+            usernameOf(playerRef, player),
+            jumpLevel,
+            skillBonus,
+            abilityBonus,
+            finalJumpForce
+        );
 
         markUsed(abilityData, AbilityType.SKY_LEAP, now);
         jumpState.setUsedSkyLeapThisAirtime(true);
@@ -176,12 +190,12 @@ public class AbilityManager {
         LOGGER.atInfo().log(
             "[BeanzCore][Ability] SKY_LEAP used successfully for %s (level=%s, staminaBefore=%.3f, staminaCost=%.3f, staminaAfter=%.3f, jumpRatio=%.3f, finalJumpForce=%.3f)",
             usernameOf(playerRef, player),
-            skills.getLevel(SkillType.JUMP),
+            jumpLevel,
             staminaBefore,
             staminaCost,
             staminaAfter,
             jumpRatio,
-            appliedJumpForce
+            finalJumpForce
         );
         return true;
     }
