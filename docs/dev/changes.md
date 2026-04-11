@@ -155,3 +155,33 @@ Command inputs are strongly typed and validated before execution
 
 Next Step
 Refactor /beanz command to use typed arguments instead of manual parsing
+
+---
+
+[2026-04-10]
+Task
+Recreated wearable Ability3 proof using built-in armor inheritance only
+
+Result
+Added a new wearable test item that inherits from built-in cloth head armor, plus a small equip/unequip logging system
+
+Findings
+The previous wearable failure came from missing custom icon/model assets, so the new test avoids custom art references entirely
+
+Next Step
+Verify in game whether the wearable loads cleanly and whether wearing it alone can expose Ability3
+
+---
+
+[2026-04-10]
+Task
+Prepared the dedicated Ability3 test item for offhand proof
+
+Result
+Updated the existing held-item Ability3 test item to be a single-stack utility-compatible item without changing its interaction path
+
+Findings
+The only concrete offhand-related asset clue exposed by the server item config is Utility.Compatible on utility items; no standalone AllowOffhand field was found
+
+Next Step
+Test whether the same Ability3 item can be placed in offhand and still fire there

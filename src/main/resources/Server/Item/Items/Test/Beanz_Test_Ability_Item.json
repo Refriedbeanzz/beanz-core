@@ -9,8 +9,13 @@
   ],
   "PlayerAnimationsId": "Item",
   "Quality": "Common",
+  "MaxStack": 1,
   "Model": "Items/Consumables/Recipes/Recipe.blockymodel",
   "Texture": "Items/Consumables/Recipes/Recipe_Texture.png",
+  "Utility": {
+    "Usable": true,
+    "Compatible": true
+  },
   "IconProperties": {
     "Scale": 0.76,
     "Rotation": [135, 135, 0],

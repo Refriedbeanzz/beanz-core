@@ -1,0 +1,10 @@
+{
+  "TranslationProperties": {
+    "Name": "Beanz Ability3 Wearable Test",
+    "Description": "Wear this and test whether Ability3 can come from equipped gear."
+  },
+  "Parent": "Armor_Cloth_Wool_Head",
+  "Interactions": {
+    "Ability3": "Root_BeanzTestAbility"
+  }
+}

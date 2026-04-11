@@ -77,3 +77,27 @@ Hytale commands use typed arguments instead of raw strings.
 - Validation occurs before execution
 - Argument types support suggestions and auto-complete
 - This enables clean, structured command systems without manual parsing
+
+---
+
+## [2026-04-10] Safer Wearable Asset Pattern
+
+### Finding
+A wearable proof item is safest when it inherits directly from a built-in armor parent and does not override icon/model/texture references.
+
+### Details
+- The prior wearable startup failure was caused by missing referenced art assets
+- Using a built-in armor parent avoids custom asset validation risk
+- This lets us test wearable behavior separately from art pipeline issues
+
+---
+
+## [2026-04-10] Offhand Item Config Clue
+
+### Finding
+No explicit AllowOffhand field was found in the item asset config, but utility items expose a `Compatible` flag and weapon items expose `RenderDualWielded`.
+
+### Details
+- `ItemUtility` has `Usable` and `Compatible`
+- `ItemWeapon` has `RenderDualWielded`
+- The existing Ability3 test item can be converted into a minimal utility-compatible item without changing its interaction mapping

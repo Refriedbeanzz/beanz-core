@@ -3,6 +3,8 @@ package com.beanz.core;
 import com.beanz.core.abilities.AbilityManager;
 import com.beanz.core.abilities.PlayerAbilityData;
 import com.beanz.core.abilities.TestAbility3Interaction;
+import com.beanz.core.abilities.WearableAbilityTestStateComponent;
+import com.beanz.core.abilities.WearableAbilityTestSystem;
 import com.beanz.core.skills.JumpSkillSystem;
 import com.beanz.core.skills.JumpFallDamageSystem;
 import com.beanz.core.skills.JumpAbilityStateComponent;
@@ -89,9 +91,17 @@ public class BeanzCoreMod extends JavaPlugin {
                 PlayerAbilityData.CODEC
             )
         );
+        WearableAbilityTestStateComponent.setComponentType(
+            getEntityStoreRegistry().registerComponent(
+                WearableAbilityTestStateComponent.class,
+                "beanz:wearable_ability_test_state",
+                WearableAbilityTestStateComponent.CODEC
+            )
+        );
         getCodecRegistry(Interaction.CODEC).register("Beanz_Test_Ability", TestAbility3Interaction.class, TestAbility3Interaction.CODEC);
         getEntityStoreRegistry().registerSystem(new JumpSkillSystem());
         getEntityStoreRegistry().registerSystem(new JumpFallDamageSystem());
+        getEntityStoreRegistry().registerSystem(new WearableAbilityTestSystem());
         getEventRegistry().register(PlayerConnectEvent.class, this::onPlayerConnect);
 
         LOGGER.atInfo().log("Registering /beanz command");
@@ -105,6 +115,11 @@ public class BeanzCoreMod extends JavaPlugin {
         if (jumpState == null) {
             jumpState = new JumpAbilityStateComponent();
             event.getHolder().addComponent(JumpAbilityStateComponent.getComponentType(), jumpState);
+        }
+        WearableAbilityTestStateComponent wearableTestState = event.getHolder().getComponent(WearableAbilityTestStateComponent.getComponentType());
+        if (wearableTestState == null) {
+            wearableTestState = new WearableAbilityTestStateComponent();
+            event.getHolder().addComponent(WearableAbilityTestStateComponent.getComponentType(), wearableTestState);
         }
         jumpState.resetAirAbilities();
         jumpState.setWasGrounded(true);
