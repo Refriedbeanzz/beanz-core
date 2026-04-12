@@ -11,20 +11,24 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
 import com.hypixel.hytale.protocol.MovementSettings;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.entity.entities.player.movement.MovementManager;
+import com.hypixel.hytale.server.core.io.PacketHandler;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity;
 import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.util.NotificationUtil;
 
 public class AbilityManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String STAMINA_STAT_ID = "stamina";
     private static final double EPSILON = 0.0001;
+    private static final boolean SKY_LEAP_TEMPORARILY_DISABLED = true;
 
     public PlayerAbilityData getOrCreate(PlayerRef playerRef, Holder<EntityStore> holder) {
         if (holder == null) {
@@ -77,6 +81,10 @@ public class AbilityManager {
         return abilityData != null && abilityData.canUse(type, now);
     }
 
+    public boolean isSkyLeapExecutionEnabled() {
+        return !SKY_LEAP_TEMPORARILY_DISABLED;
+    }
+
     public void markUsed(PlayerAbilityData abilityData, AbilityType type, long now) {
         if (abilityData != null) {
             abilityData.markUsed(type, now);
@@ -84,6 +92,11 @@ public class AbilityManager {
     }
 
     public boolean useSkyLeap(PlayerRef playerRef) {
+        if (!isSkyLeapExecutionEnabled()) {
+            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: temporarily disabled");
+            return false;
+        }
+
         if (playerRef == null) {
             LOGGER.atWarning().log("[BeanzCore][Ability] SKY_LEAP blocked: player ref was null");
             return false;
@@ -91,6 +104,13 @@ public class AbilityManager {
 
         Holder<EntityStore> holder = playerRef.getHolder();
         if (holder == null) {
+            LOGGER.atInfo().log(
+                "[BeanzCore][AbilityDebug] SKY_LEAP holder lookup: player=%s, entityRef=%s, holder=%s, lookupPath=%s",
+                playerRef.getUsername(),
+                "n/a",
+                "null",
+                "playerRef.getHolder()"
+            );
             LOGGER.atWarning().log("[BeanzCore][Ability] SKY_LEAP blocked: holder missing for %s", playerRef.getUsername());
             return false;
         }
@@ -103,6 +123,42 @@ public class AbilityManager {
         MovementManager movementManager = holder.getComponent(MovementManager.getComponentType());
         EntityStatMap statMap = holder.getComponent(EntityStatMap.getComponentType());
         Velocity velocity = holder.getComponent(Velocity.getComponentType());
+
+        return useSkyLeap(
+            playerRef,
+            player,
+            null,
+            skills,
+            abilityData,
+            jumpState,
+            movementStates,
+            movementManager,
+            statMap,
+            velocity
+        );
+    }
+
+    public boolean useSkyLeap(
+        PlayerRef playerRef,
+        Player player,
+        Ref<EntityStore> ref,
+        PlayerSkillsComponent skills,
+        PlayerAbilityData abilityData,
+        JumpAbilityStateComponent jumpState,
+        MovementStatesComponent movementStates,
+        MovementManager movementManager,
+        EntityStatMap statMap,
+        Velocity velocity
+    ) {
+        if (!isSkyLeapExecutionEnabled()) {
+            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: temporarily disabled");
+            return false;
+        }
+
+        if (playerRef == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] SKY_LEAP blocked: player ref was null");
+            return false;
+        }
 
         LOGGER.atInfo().log("[BeanzCore][Ability] Ability3 pressed for %s", usernameOf(playerRef, player));
 
@@ -197,38 +253,15 @@ public class AbilityManager {
             jumpRatio,
             finalJumpForce
         );
-        return true;
-    }
 
-    public boolean useSkyLeap(
-        PlayerRef playerRef,
-        Player player,
-        Ref<EntityStore> ref,
-        PlayerSkillsComponent skills,
-        PlayerAbilityData abilityData,
-        JumpAbilityStateComponent jumpState,
-        SkillRewardService rewardService
-    ) {
-        long now = System.currentTimeMillis();
-        if (!isUnlocked(abilityData, AbilityType.SKY_LEAP)) {
-            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: locked for %s", usernameOf(playerRef, player));
-            return false;
+        PacketHandler packetHandler = player != null ? player.getPlayerConnection() : null;
+        if (packetHandler != null) {
+            NotificationUtil.sendNotification(
+                packetHandler,
+                Message.raw("SKY_LEAP activated").color("#6fd0ff").bold(true),
+                Message.raw("Ability3 launched you upward.").color("#d8e4f2")
+            );
         }
-        if (jumpState == null || !jumpState.hasLeftGroundSinceInitialJump()) {
-            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: not airborne for %s", usernameOf(playerRef, player));
-            return false;
-        }
-        if (jumpState.hasUsedSkyLeapThisAirtime()) {
-            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: already used this airtime for %s", usernameOf(playerRef, player));
-            return false;
-        }
-        if (!canUse(abilityData, AbilityType.SKY_LEAP, now)) {
-            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: cooldown for %s", usernameOf(playerRef, player));
-            return false;
-        }
-
-        markUsed(abilityData, AbilityType.SKY_LEAP, now);
-        jumpState.setUsedSkyLeapThisAirtime(true);
         return true;
     }
 

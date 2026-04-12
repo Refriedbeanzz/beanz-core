@@ -34,6 +34,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
     private static final FluentLogger LOGGER = FluentLogger.forEnclosingClass();
     private static final int XP_PER_JUMP = 1;
     private static final double EPSILON = 0.0001;
+    private static final long EXHAUSTION_RECOVERY_DELAY_MS = 3000L;
     private static final double WALL_NORMAL_Y_LIMIT = 0.35;
     private static final String STAMINA_STAT_ID = "stamina";
     private static final int WALL_CONTACT_GRACE_TICKS = 6;
@@ -126,12 +127,6 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             && !hasLeftGroundSinceInitialJump
             && (current.onGround || wasGroundedLastTick);
 
-        if (!jumpInputDetected) {
-            jumpState.setWasGrounded(current.onGround);
-            jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
-            return;
-        }
-
         int jumpLevel = skills.getLevel(SkillType.JUMP);
         SkillRewardService rewardService = skillService.getRewardService();
         MovementSettings settings = movementManager.getSettings();
@@ -140,6 +135,77 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         double multiplier = rewardService.getJumpMultiplier(skills);
         double previousConfiguredJumpForce = settings.jumpForce;
         double fullJumpForce = baseJumpForce * multiplier;
+        EntityStatValue staminaValue = statMap.get(STAMINA_STAT_ID);
+        SprintStaminaRegenDelay staminaRegenDelay =
+            (SprintStaminaRegenDelay) store.getResource(SprintStaminaRegenDelay.getResourceType());
+        double staminaCost = rewardService.getJumpStaminaCost(skills);
+        double staminaBefore = staminaValue != null ? staminaValue.get() : -1.0;
+        if (staminaRegenDelay != null && staminaRegenDelay.hasDelay()) {
+            jumpState.setStaminaDelayStatIndex(staminaRegenDelay.getIndex());
+            jumpState.setStaminaDelayStatValue(staminaRegenDelay.getValue());
+        }
+        long now = System.currentTimeMillis();
+        if (staminaBefore <= EPSILON) {
+            if (jumpState.getStaminaExhaustedAtMillis() <= 0L) {
+                jumpState.setStaminaExhaustedAtMillis(now);
+            }
+        } else if (jumpState.getStaminaExhaustedAtMillis() > 0L) {
+            jumpState.setStaminaExhaustedAtMillis(0L);
+            if (staminaRegenDelay != null
+                && !staminaRegenDelay.hasDelay()
+                && jumpState.getStaminaDelayStatIndex() > 0
+                && jumpState.getStaminaDelayStatValue() < 0.0f) {
+                staminaRegenDelay.update(jumpState.getStaminaDelayStatIndex(), jumpState.getStaminaDelayStatValue());
+            }
+        }
+        long timeSinceExhaustion = jumpState.getStaminaExhaustedAtMillis() > 0L
+            ? now - jumpState.getStaminaExhaustedAtMillis()
+            : -1L;
+        boolean staminaDelayActive = jumpState.getStaminaExhaustedAtMillis() > 0L;
+        boolean recoveryReady = staminaDelayActive && timeSinceExhaustion >= EXHAUSTION_RECOVERY_DELAY_MS;
+        if (recoveryReady && staminaRegenDelay != null && staminaRegenDelay.hasDelay()) {
+            staminaRegenDelay.markEmpty();
+            staminaDelayActive = false;
+        }
+        boolean exhaustedRecoveryActive = staminaDelayActive && staminaBefore <= EPSILON;
+
+        if (staminaBefore <= EPSILON || staminaDelayActive || recoveryReady) {
+            LOGGER.atInfo().log(
+                "[BeanzCore][StaminaRecovery] staminaCurrent=%.3f, staminaDelayActive=%s, exhaustedRecoveryActive=%s, timeSinceExhaustion=%s, recoveryReady=%s",
+                staminaBefore,
+                staminaDelayActive,
+                exhaustedRecoveryActive,
+                timeSinceExhaustion,
+                recoveryReady
+            );
+        }
+        double staminaRatio = staminaValue == null || staminaCost <= 0.0
+            ? 1.0
+            : Math.min(1.0, Math.max(0.0, staminaBefore / staminaCost));
+        double jumpRatio = exhaustedRecoveryActive ? 0.0 : staminaRatio;
+        double previewGroundJumpForce = calculateAppliedJumpForce(baseJumpForce, fullJumpForce, jumpRatio, JumpAbilityType.GROUND, rewardService);
+        boolean skyLeapActive = BeanzCoreMod.getInstance().getAbilityManager().isSkyLeapExecutionEnabled()
+            && abilityData.isUnlocked(com.beanz.core.abilities.AbilityType.SKY_LEAP);
+        if (current.onGround && Math.abs(previousConfiguredJumpForce - previewGroundJumpForce) > EPSILON) {
+            settings.jumpForce = (float) previewGroundJumpForce;
+            movementManager.update(player.getPlayerConnection());
+
+            LOGGER.atInfo().log(
+                "Primed runtime MovementManager.settings.jumpForce for %s: before=%.3f, after=%.3f, level=%s, multiplier=%.3f, movementPath=ground_jump_prep",
+                ref,
+                previousConfiguredJumpForce,
+                previewGroundJumpForce,
+                jumpLevel,
+                multiplier
+            );
+            previousConfiguredJumpForce = previewGroundJumpForce;
+        }
+
+        if (!jumpInputDetected) {
+            jumpState.setWasGrounded(current.onGround);
+            jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
+            return;
+        }
         boolean airborne = !current.onGround;
         boolean nearWall = false;
         int wallContactTicks = 0;
@@ -160,7 +226,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             jumpState.hasJumpReleasedSinceGroundJump(),
             airborne,
             current.onGround,
-            abilityData.isUnlocked(com.beanz.core.abilities.AbilityType.SKY_LEAP),
+            skyLeapActive,
             jumpState.hasUsedSkyLeapThisAirtime(),
             nearWall,
             wallContactTicks,
@@ -176,24 +242,13 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
                 hasLeftGroundSinceInitialJump,
                 jumpState.hasJumpReleasedSinceGroundJump(),
                 jumpState.hasUsedSkyLeapThisAirtime(),
-                abilityData.isUnlocked(com.beanz.core.abilities.AbilityType.SKY_LEAP),
+                skyLeapActive,
                 actionChosen
             );
             jumpState.setWasGrounded(current.onGround);
             jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
             return;
         }
-        EntityStatValue staminaValue = statMap.get(STAMINA_STAT_ID);
-        SprintStaminaRegenDelay staminaRegenDelay =
-            (SprintStaminaRegenDelay) store.getResource(SprintStaminaRegenDelay.getResourceType());
-        double staminaCost = rewardService.getJumpStaminaCost(skills);
-        double staminaBefore = staminaValue != null ? staminaValue.get() : -1.0;
-        boolean staminaDelayActive = staminaRegenDelay != null && staminaRegenDelay.hasDelay();
-        boolean exhaustedRecoveryActive = staminaDelayActive && staminaBefore <= EPSILON;
-        double staminaRatio = staminaValue == null || staminaCost <= 0.0
-            ? 1.0
-            : Math.min(1.0, Math.max(0.0, staminaBefore / staminaCost));
-        double jumpRatio = exhaustedRecoveryActive ? 0.0 : staminaRatio;
         boolean bonusJumpAllowed = jumpRatio > 0.0 && abilityType != null;
         String blockedReason = exhaustedRecoveryActive
             ? "stamina_recovery"
@@ -208,7 +263,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
                 STAMINA_STAT_ID,
                 ref
             );
-        } else {
+        } else if (abilityType != JumpAbilityType.GROUND) {
             float appliedCost = (float) Math.min(staminaBefore, staminaCost);
             float newStamina = statMap.subtractStatValue(staminaValue.getIndex(), appliedCost);
             statMap.update();
@@ -260,6 +315,28 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
 
         if (abilityType == JumpAbilityType.GROUND) {
             jumpState.markGroundJumpStarted();
+            float staminaSpent = 0.0f;
+            float staminaAfter = (float) staminaBefore;
+            if (staminaValue != null) {
+                staminaSpent = (float) Math.min(staminaBefore, staminaCost);
+                staminaAfter = statMap.subtractStatValue(staminaValue.getIndex(), staminaSpent);
+                statMap.update();
+            }
+            LOGGER.atInfo().log(
+                "[BeanzCore][JumpDebug] Ground jump execution: jumpLevel=%s, staminaBefore=%.3f, staminaCost=%.3f, jumpRatio=%.3f, finalJumpForce=%.3f",
+                jumpLevel,
+                staminaBefore,
+                staminaCost,
+                jumpRatio,
+                appliedJumpForce
+            );
+            LOGGER.atInfo().log(
+                "[BeanzCore][JumpDebug] Ground jump stamina: staminaBefore=%.3f, staminaSpent=%.3f, staminaAfter=%.3f, finalJumpForce=%.3f",
+                staminaBefore,
+                staminaSpent,
+                staminaAfter,
+                appliedJumpForce
+            );
             LOGGER.atInfo().log(
                 "Initial ground jump registered for %s",
                 ref
@@ -467,7 +544,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         }
 
         return switch (abilityType) {
-            case GROUND -> baseJumpForce + ((fullJumpForce - baseJumpForce) * jumpRatio);
+            case GROUND -> fullJumpForce * jumpRatio;
             case DOUBLE -> fullJumpForce * rewardService.getDoubleJumpForceScale() * jumpRatio;
             case WALL -> fullJumpForce * rewardService.getWallJumpVerticalForceScale() * jumpRatio;
         };

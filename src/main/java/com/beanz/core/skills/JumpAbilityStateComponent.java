@@ -107,6 +107,24 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
             JumpAbilityStateComponent::getBufferedDoubleJumpPressTicks
         )
         .add()
+        .append(
+            new KeyedCodec<>("StaminaExhaustedAtMillis", Codec.LONG),
+            JumpAbilityStateComponent::setStaminaExhaustedAtMillis,
+            JumpAbilityStateComponent::getStaminaExhaustedAtMillis
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("StaminaDelayStatIndex", Codec.INTEGER),
+            JumpAbilityStateComponent::setStaminaDelayStatIndex,
+            JumpAbilityStateComponent::getStaminaDelayStatIndex
+        )
+        .add()
+        .append(
+            new KeyedCodec<>("StaminaDelayStatValue", Codec.FLOAT),
+            JumpAbilityStateComponent::setStaminaDelayStatValue,
+            JumpAbilityStateComponent::getStaminaDelayStatValue
+        )
+        .add()
         .build();
 
     private static ComponentType<EntityStore, JumpAbilityStateComponent> componentType;
@@ -127,6 +145,9 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
     private int doubleJumpCooldownTicks;
     private boolean usedSkyLeapThisAirtime;
     private int bufferedDoubleJumpPressTicks;
+    private long staminaExhaustedAtMillis;
+    private int staminaDelayStatIndex;
+    private float staminaDelayStatValue;
 
     public static ComponentType<EntityStore, JumpAbilityStateComponent> getComponentType() {
         return componentType;
@@ -316,6 +337,30 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         this.bufferedDoubleJumpPressTicks = Math.max(0, bufferedDoubleJumpPressTicks);
     }
 
+    public long getStaminaExhaustedAtMillis() {
+        return staminaExhaustedAtMillis;
+    }
+
+    public void setStaminaExhaustedAtMillis(long staminaExhaustedAtMillis) {
+        this.staminaExhaustedAtMillis = Math.max(0L, staminaExhaustedAtMillis);
+    }
+
+    public int getStaminaDelayStatIndex() {
+        return staminaDelayStatIndex;
+    }
+
+    public void setStaminaDelayStatIndex(int staminaDelayStatIndex) {
+        this.staminaDelayStatIndex = Math.max(0, staminaDelayStatIndex);
+    }
+
+    public float getStaminaDelayStatValue() {
+        return staminaDelayStatValue;
+    }
+
+    public void setStaminaDelayStatValue(float staminaDelayStatValue) {
+        this.staminaDelayStatValue = staminaDelayStatValue;
+    }
+
     public void tickDoubleJumpTimers(boolean onGround) {
         if (doubleTapWindowTicks > 0) {
             doubleTapWindowTicks--;
@@ -379,6 +424,9 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         copy.doubleJumpCooldownTicks = this.doubleJumpCooldownTicks;
         copy.usedSkyLeapThisAirtime = this.usedSkyLeapThisAirtime;
         copy.bufferedDoubleJumpPressTicks = this.bufferedDoubleJumpPressTicks;
+        copy.staminaExhaustedAtMillis = this.staminaExhaustedAtMillis;
+        copy.staminaDelayStatIndex = this.staminaDelayStatIndex;
+        copy.staminaDelayStatValue = this.staminaDelayStatValue;
         return copy;
     }
 }

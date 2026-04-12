@@ -206,3 +206,117 @@ Reconnected the main-hand/off-hand Ability3 trigger to the shared `AbilityManage
   - `finalJumpForce`
 
 ---
+
+## [2026-04-11] Fix SKY_LEAP Holder Resolution For Interaction Path
+
+### Summary
+Patched the Ability3 interaction path to pass the live player entity context directly into `AbilityManager` instead of relying on `playerRef.getHolder()`, which was null during the interaction callback.
+
+### Details
+- Confirmed `AbilityManager.useSkyLeap(PlayerRef)` was blocking at `playerRef.getHolder()`
+- Updated `TestAbility3Interaction` to pass the already-resolved player entity ref and runtime components into a new `AbilityManager.useSkyLeap(...)` overload
+- Kept the existing `playerRef.getHolder()` path for non-interaction callers
+- Added one concise debug log immediately before the existing holder-missing block showing:
+  - player
+  - entity ref
+  - holder result
+  - lookup path attempted
+
+---
+
+## [2026-04-11] Restore Passive Ground Jump Boost And SKY_LEAP Popup
+
+### Summary
+Restored the passive Jump skill boost on the normal first jump by priming the runtime ground jump force before takeoff, and restored the successful SKY_LEAP popup notification.
+
+### Details
+- Confirmed normal first jump still depends on `MovementManager.settings.jumpForce`
+- Confirmed the system was only changing that runtime jump force after jump input was already being processed
+- Updated `JumpSkillSystem` to prime the scaled ground jump force while the player is still on the ground
+- Restored the SKY_LEAP success notification in `AbilityManager` after successful ability use
+
+---
+
+## [2026-04-12] Temporarily Disable SKY_LEAP And Move Ground Jump Prep Earlier
+
+### Summary
+Temporarily disabled SKY_LEAP execution without removing any code or assets, and moved the passive ground-jump force prep ahead of the no-input return so the normal first jump can be tested in isolation.
+
+### Details
+- Added a temporary execution gate in `AbilityManager` so SKY_LEAP interactions stay wired but do not execute
+- Updated `JumpSkillSystem` to treat SKY_LEAP as inactive while that gate is off
+- Confirmed the passive jump-force prep was still below the `!jumpInputDetected` early return
+- Moved the passive `MovementManager.settings.jumpForce` prep above that return so the scaled ground jump force is ready before takeoff
+
+---
+
+## [2026-04-12] Restore Stamina Scaling On Normal Ground Jump
+
+### Summary
+Reintroduced stamina-based jump strength for the regular ground jump by previewing the grounded jump ratio before takeoff and using that same ratio when the jump executes.
+
+### Details
+- Moved grounded stamina calculations ahead of the no-input return so the runtime ground jump force can be primed from current stamina
+- Updated grounded jump force to scale directly with `jumpRatio`
+- Kept stamina consumption on jump execution
+- Added a concise grounded-jump debug log with:
+  - `jumpLevel`
+  - `staminaBefore`
+  - `staminaCost`
+  - `jumpRatio`
+  - `finalJumpForce`
+
+---
+
+## [2026-04-12] Consume Stamina On Successful Ground Jump
+
+### Summary
+Moved normal-jump stamina consumption to the actual grounded jump execution point so the jump is charged once, only when it really happens.
+
+### Details
+- Kept the grounded stamina preview path for jump-force priming
+- Deferred normal-jump stamina subtraction until `abilityType == GROUND`
+- Avoided double-charging by skipping the earlier shared subtraction block for grounded jumps
+- Added a concise grounded-jump stamina log with:
+  - `staminaBefore`
+  - `staminaSpent`
+  - `staminaAfter`
+  - `finalJumpForce`
+
+---
+
+## [2026-04-12] Fix Exhaustion Recovery Reset For Ground Jump Stamina
+
+### Summary
+Replaced the stuck recovery-flag check with a small per-player exhaustion timer and a one-time sprint delay reset so stamina can regenerate again after exhaustion.
+
+### Details
+- Confirmed `SprintStaminaRegenDelay.hasDelay()` was being treated like a live recovery flag inside `JumpSkillSystem`
+- Added per-player fields to `JumpAbilityStateComponent` to track:
+  - exhaustion start time
+  - cached stamina delay stat index/value
+- After the recovery wait window, clear the active sprint delay resource once so stamina regen can resume
+- Added a concise recovery tick debug log with:
+  - `staminaCurrent`
+  - `staminaDelayActive`
+  - `exhaustedRecoveryActive`
+  - `timeSinceExhaustion`
+  - `recoveryReady`
+
+---
+
+## [2026-04-12] Retag Active Stamina Recovery Log Path
+
+### Summary
+Confirmed stamina recovery already runs inside `JumpSkillSystem.tick(...)`, then retagged the active recovery log from `JumpDebug` to `StaminaRecovery` so live log searches match the real execution path.
+
+### Details
+- Verified `JumpSkillSystem` is registered in plugin setup and runs as an entity ticking system
+- Verified the exhaustion/recovery evaluation and debug log sit in the active tick path before the no-input early return
+- Verified the previously built jar still contained:
+  - `[BeanzCore][JumpDebug] Stamina recovery tick: ...`
+- Updated only the active recovery log line to:
+  - `[BeanzCore][StaminaRecovery] staminaCurrent=...`
+- Rebuilt the local jar after the tag change
+
+---

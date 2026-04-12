@@ -118,3 +118,88 @@ The working main-hand/off-hand Ability3 item was still invoking `TestAbility3Int
   - Jump skill level and level 100 force bonus no longer affected final SKY_LEAP force
 
 ---
+
+## [2026-04-11] PlayerRef Holder Is Null In Ability3 Interaction Callback
+
+### Finding
+During the Ability3 interaction callback, `playerRef.getHolder()` can be null even though the interaction already has the correct player entity ref and live runtime components.
+
+### Details
+- `TestAbility3Interaction` successfully resolved the player entity through `context.getEntity()`
+- The same callback produced `playerRef.getHolder() == null` inside `AbilityManager.useSkyLeap(PlayerRef)`
+- This means the interaction path must use the entity-context components already available in the callback instead of depending on `PlayerRef` holder lookup
+
+---
+
+## [2026-04-11] Ground Jump Force Must Be Primed Before Takeoff
+
+### Finding
+The passive first-jump boost depends on `MovementManager.settings.jumpForce` already being updated before the grounded jump fires; changing it only during jump-input handling is too late for the current takeoff.
+
+### Details
+- SKY_LEAP and other air abilities work because they write velocity directly
+- The normal first jump still uses the runtime movement settings path
+- Priming `settings.jumpForce` while grounded restores the passive Jump skill boost on the next ground jump
+
+---
+
+## [2026-04-12] No-Input Early Return Was Still Skipping Ground Jump Prep
+
+### Finding
+Even after adding passive ground-jump prep, the prep still did not run while the player was simply standing on the ground because it was placed below the `!jumpInputDetected` early return.
+
+### Details
+- The regular first jump depends on `MovementManager.settings.jumpForce` already being primed before the jump starts
+- Returning early on no input prevented that priming from happening during grounded idle ticks
+- Moving the prep above the early return makes the scaled passive jump force available for the next normal takeoff
+
+---
+
+## [2026-04-12] Ground Jump Stamina Must Be Previewed Before Input
+
+### Finding
+The normal first jump uses the runtime grounded jump-force value that is already configured before takeoff, so stamina scaling for that jump must also be previewed before input rather than only computed during jump execution.
+
+### Details
+- Ground jump force is applied through `MovementManager.settings.jumpForce`
+- If grounded stamina ratio is only computed after jump input, the current takeoff cannot use it
+- Previewing the grounded stamina-scaled force while on the ground restores proportional normal-jump strength
+
+---
+
+## [2026-04-12] Ground Jump Must Consume Stamina At Execution Time
+
+### Finding
+The normal jump should preview stamina for force priming before input, but the actual stamina subtraction needs to happen at grounded jump execution time to ensure the jump is charged once and only once.
+
+### Details
+- Previewing stamina early is needed for the takeoff force
+- Subtracting stamina early is the wrong lifecycle point for the actual jump cost
+- Deferring subtraction to the grounded execution block cleanly avoids double-charging
+
+---
+
+## [2026-04-12] SprintStaminaRegenDelay Is Not A Live Recovery Countdown
+
+### Finding
+`SprintStaminaRegenDelay.hasDelay()` is not a per-player recovery timer; it reflects configured sprint delay state and does not clear on its own after exhaustion, so using it directly as the jump system's recovery flag leaves `stamina_recovery` stuck forever.
+
+### Details
+- The engine class reports delay active from its stored index/value pair
+- `JumpSkillSystem` was reading that as if it were a live runtime recovery flag
+- A separate per-player exhaustion timer is needed for jump recovery logic, with a one-time delay reset when recovery becomes ready
+
+---
+
+## [2026-04-12] Recovery Log Tag Mismatch Was In The Live Tick Path
+
+### Finding
+The stamina recovery debug log was already placed in the real `JumpSkillSystem.tick(...)` execution path, but both source and built jar used the tag `[BeanzCore][JumpDebug]` instead of the searched tag `[BeanzCore][StaminaRecovery]`.
+
+### Details
+- `BeanzCoreMod.setup()` registers `new JumpSkillSystem()`
+- The recovery log sits before the `!jumpInputDetected` early return, so it can run during grounded idle recovery ticks
+- The pre-patch jar constant pool still contained the old `JumpDebug` recovery string
+- No dead helper path or missing system wiring was involved in this log miss
+
+---
