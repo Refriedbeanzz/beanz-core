@@ -365,3 +365,18 @@ Next Step
 Use stack/center layouts and padding-first composition for `/beanz` UI before relying on absolute positioning
 
 ---
+
+[2026-04-15]
+Task
+Ingested official Hytale UI Markup documentation
+
+Result
+Added `docs/hytale/ui/markup.md`, indexed it in the UI README, and documented elements, named expressions, document references, templates, property types, colors, fonts, and relative paths
+
+Findings
+Hytale UI markup is a scoped element-tree language where `@` expressions, `$` document references, and reusable templates make `.ui` files modular and server-friendly
+
+Next Step
+Use named expressions and templates when expanding `/beanz` UI so styles, rows, and repeated sections stay reusable
+
+---
