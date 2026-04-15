@@ -335,3 +335,18 @@ Next Step
 Use the custom page + selector model when expanding `/beanz` UI and future HUD overlays
 
 ---
+
+[2026-04-15]
+Task
+Ingested official Hytale Common Styling documentation
+
+Result
+Added `docs/hytale/ui/common-styling.md`, indexed it in the UI README, and documented how to import and reuse `Common.ui`
+
+Findings
+Hytale exposes a shared `Common.ui` style/component library that can be imported into custom UI files to keep server-built pages visually consistent with the base game
+
+Next Step
+Base future `/beanz` page styling on `Common.ui` primitives before adding custom visual overrides
+
+---
