@@ -28,7 +28,7 @@ public class AbilityManager {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     private static final String STAMINA_STAT_ID = "stamina";
     private static final double EPSILON = 0.0001;
-    private static final boolean SKY_LEAP_TEMPORARILY_DISABLED = false;
+    private static final boolean SKY_LEAP_TEMPORARILY_DISABLED = true;
 
     public PlayerAbilityData getOrCreate(PlayerRef playerRef, Holder<EntityStore> holder) {
         if (holder == null) {
