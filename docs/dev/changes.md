@@ -350,3 +350,18 @@ Next Step
 Base future `/beanz` page styling on `Common.ui` primitives before adding custom visual overrides
 
 ---
+
+[2026-04-15]
+Task
+Ingested official Hytale UI Layout documentation
+
+Result
+Added `docs/hytale/ui/layout.md`, indexed it in the UI README, and documented anchors, padding, layout modes, flex sizing, and visibility behavior
+
+Findings
+Hytale UI layout is driven by container rectangles plus `Anchor`, `Padding`, and `LayoutMode`, with `FlexWeight` distributing leftover space and hidden elements dropping out of layout entirely
+
+Next Step
+Use stack/center layouts and padding-first composition for `/beanz` UI before relying on absolute positioning
+
+---
