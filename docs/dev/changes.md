@@ -320,3 +320,18 @@ Confirmed stamina recovery already runs inside `JumpSkillSystem.tick(...)`, then
 - Rebuilt the local jar after the tag change
 
 ---
+
+[2026-04-15]
+Task
+Ingested official Hytale Custom UI documentation
+
+Result
+Added `docs/hytale/ui/custom-ui.md`, indexed it in the UI README, and documented the server-controlled page/HUD model
+
+Findings
+Hytale Custom UI is a server-driven, command-based system where Java sends UI commands, `.ui` assets define layout, and interaction events flow back to the server
+
+Next Step
+Use the custom page + selector model when expanding `/beanz` UI and future HUD overlays
+
+---
