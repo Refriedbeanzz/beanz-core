@@ -286,7 +286,7 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
     public void markGroundJumpStarted() {
         airTicks = 0;
         jumpReleasedSinceGroundJump = false;
-        hasLeftGroundSinceInitialJump = false;
+        hasLeftGroundSinceInitialJump = true;
     }
 
     public boolean wasJumpPressedLastTick() {

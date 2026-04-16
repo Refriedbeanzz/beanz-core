@@ -106,6 +106,7 @@ public class BeanzCoreMod extends JavaPlugin {
 
         LOGGER.atInfo().log("Registering /beanz command");
         getCommandRegistry().registerCommand(new BeanzCommand());
+        getCommandRegistry().registerCommand(new SetJumpLevelCommand());
     }
 
     private void onPlayerConnect(PlayerConnectEvent event) {

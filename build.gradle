@@ -9,7 +9,7 @@ def appData = System.getenv('APPDATA')
 def defaultHytaleHome = appData ? "${appData}/Hytale" : null
 def hytaleHome = providers.gradleProperty('hytaleHome').orElse(defaultHytaleHome ?: '').get()
 def hytaleServerJar = file("${hytaleHome}/install/release/package/game/latest/Server/HytaleServer.jar")
-def hytaleEarlyPluginsDir = file("${hytaleHome}/UserData/earlyplugins")
+def hytaleEarlyPluginsDir = file("${hytaleHome}/UserData/Mods")
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21

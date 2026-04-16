@@ -99,6 +99,11 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         boolean newJumpPress = jumpRisingEdge || movementJumpEdgeDetected || queuedJumpPressDetected;
         boolean jumpInputDetected = newJumpPress;
         boolean justLeftGround = !current.onGround && wasGroundedLastTick;
+        // Capture persisted state before it gets updated below — used for groundedJump detection.
+        // The engine moves the player airborne before our tick runs, so by the time we see a jump
+        // press, justLeftGround is already true. Using the pre-update persisted state lets us
+        // correctly classify the takeoff tick as a ground jump.
+        boolean hadLeftGroundBeforeThisTick = jumpState.hasLeftGroundSinceInitialJump();
         boolean hasLeftGroundSinceInitialJump = jumpState.hasLeftGroundSinceInitialJump() || justLeftGround;
 
         if (justLeftGround && !jumpState.hasLeftGroundSinceInitialJump()) {
@@ -124,7 +129,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             jumpState.setJumpReleasedSinceGroundJump(true);
         }
         boolean groundedJump = newJumpPress
-            && !hasLeftGroundSinceInitialJump
+            && !hadLeftGroundBeforeThisTick
             && (current.onGround || wasGroundedLastTick);
 
         int jumpLevel = skills.getLevel(SkillType.JUMP);
