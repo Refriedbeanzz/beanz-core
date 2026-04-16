@@ -108,6 +108,12 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         )
         .add()
         .append(
+            new KeyedCodec<>("BufferedSkyLeapPressTicks", Codec.INTEGER),
+            JumpAbilityStateComponent::setBufferedSkyLeapPressTicks,
+            JumpAbilityStateComponent::getBufferedSkyLeapPressTicks
+        )
+        .add()
+        .append(
             new KeyedCodec<>("StaminaExhaustedAtMillis", Codec.LONG),
             JumpAbilityStateComponent::setStaminaExhaustedAtMillis,
             JumpAbilityStateComponent::getStaminaExhaustedAtMillis
@@ -145,6 +151,7 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
     private int doubleJumpCooldownTicks;
     private boolean usedSkyLeapThisAirtime;
     private int bufferedDoubleJumpPressTicks;
+    private int bufferedSkyLeapPressTicks;
     private long staminaExhaustedAtMillis;
     private int staminaDelayStatIndex;
     private float staminaDelayStatValue;
@@ -337,6 +344,14 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         this.bufferedDoubleJumpPressTicks = Math.max(0, bufferedDoubleJumpPressTicks);
     }
 
+    public int getBufferedSkyLeapPressTicks() {
+        return bufferedSkyLeapPressTicks;
+    }
+
+    public void setBufferedSkyLeapPressTicks(int bufferedSkyLeapPressTicks) {
+        this.bufferedSkyLeapPressTicks = Math.max(0, bufferedSkyLeapPressTicks);
+    }
+
     public long getStaminaExhaustedAtMillis() {
         return staminaExhaustedAtMillis;
     }
@@ -402,6 +417,7 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         hasLeftGroundSinceInitialJump = false;
         doubleTapWindowTicks = 0;
         bufferedDoubleJumpPressTicks = 0;
+        bufferedSkyLeapPressTicks = 0;
         clearRecentWallContact();
     }
 
@@ -424,6 +440,7 @@ public class JumpAbilityStateComponent implements Component<EntityStore> {
         copy.doubleJumpCooldownTicks = this.doubleJumpCooldownTicks;
         copy.usedSkyLeapThisAirtime = this.usedSkyLeapThisAirtime;
         copy.bufferedDoubleJumpPressTicks = this.bufferedDoubleJumpPressTicks;
+        copy.bufferedSkyLeapPressTicks = this.bufferedSkyLeapPressTicks;
         copy.staminaExhaustedAtMillis = this.staminaExhaustedAtMillis;
         copy.staminaDelayStatIndex = this.staminaDelayStatIndex;
         copy.staminaDelayStatValue = this.staminaDelayStatValue;

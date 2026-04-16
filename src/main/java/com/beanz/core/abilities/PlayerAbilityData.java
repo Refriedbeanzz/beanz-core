@@ -41,6 +41,10 @@ public class PlayerAbilityData implements Component<EntityStore> {
         get(type).setUnlocked(true);
     }
 
+    public void lock(AbilityType type) {
+        get(type).setUnlocked(false);
+    }
+
     public boolean canUse(AbilityType type, long now) {
         AbilityData abilityData = get(type);
         return abilityData.isUnlocked() && !abilityData.isOnCooldown(now);
