@@ -237,7 +237,7 @@ public class AbilityManager {
         int jumpLevel = skills.getLevel(SkillType.JUMP);
         double skillAdjustedJumpForce = baseJumpForce * rewardService.getJumpMultiplier(skills);
         double skillBonus = skillAdjustedJumpForce - baseJumpForce;
-        double abilityBonus = skillAdjustedJumpForce * rewardService.getDoubleJumpForceScale() * jumpRatio;
+        double abilityBonus = skillAdjustedJumpForce * rewardService.getSkyLeapForceScale() * jumpRatio;
         double finalJumpForce = baseJumpForce + skillBonus + abilityBonus;
 
         double previousX = velocity.getX();

@@ -13,6 +13,7 @@ public class SkillRewardService {
     private static final double BASE_JUMP_STAMINA_COST = 5.5;
     private static final double JUMP_STAMINA_DISCOUNT_PER_LEVEL = 0.05;
     private static final double DOUBLE_JUMP_FORCE_SCALE = 0.9;
+    private static final double SKY_LEAP_FORCE_SCALE = 0.6;
     private static final double WALL_JUMP_VERTICAL_FORCE_SCALE = 0.85;
     private static final double WALL_JUMP_HORIZONTAL_FORCE = 7.5;
 
@@ -65,6 +66,10 @@ public class SkillRewardService {
 
     public double getDoubleJumpForceScale() {
         return DOUBLE_JUMP_FORCE_SCALE;
+    }
+
+    public double getSkyLeapForceScale() {
+        return SKY_LEAP_FORCE_SCALE;
     }
 
     public double getWallJumpVerticalForceScale() {
