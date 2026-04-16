@@ -8,28 +8,30 @@ This mod provides the base systems that all other mods will depend on, including
 
 ## What's Built
 
-### Jump Skill System
-- Full XP-based progression from level 1 to 100
-- Passive ground jump boost that scales with level
-- Stamina cost per jump that decreases as you level up
-- Stamina scaling on jump force — low stamina means lower jumps
-- Stamina exhaustion recovery
+### Jump Skill
+- Full XP-based progression from level 1 to 100 — XP awarded on every jump
+- Jump height scales with level (up to 1.5× at level 100)
+- Fall damage reduction scales with level — full immunity at level 100
+- Stamina cost per jump decreases as you level up
+- Low stamina means a lower jump — stamina scales jump force
+- Stamina exhaustion recovery — regen resumes automatically after full drain
 
-### SKY_LEAP Ability
+### Sky Leap Ability
 - Unlocks at jump level 60
-- Airborne-only mid-air boost activated via Ability3 input
-- Bound to held item or wearable (helmet slot)
-- Uses shared stamina pool with ground jump
+- Mid-air boost activated via the Ability 3 key
 - One use per airtime, resets on landing
+- Uses the same stamina pool as ground jump
+- Bound to held item or wearable (helmet slot)
+- Input buffering — pressing the key a fraction early still triggers correctly
 
 ### Admin Commands
-- `/beanzlevel <1-100>` — set your own jump level for testing
-- `/beanz` — base debug command
+- `/beanzlevel <1-100>` — set your own jump level; syncs XP and ability unlocks
+- `/beanzlevel <player> <skill> <level>` — set any online player's skill level
+- `/beanz` — base debug command and skill inspector
 
 ### Infrastructure
 - Per-player persistent skill data via entity component system
 - Level-up HUD notifications
-- Fall damage system
 - Gradle build with one-step deploy to Hytale Mods folder
 
 ---
@@ -38,9 +40,9 @@ This mod provides the base systems that all other mods will depend on, including
 
 Future work is tracked in [ROADMAP.md](ROADMAP.md), including:
 
-- `/beanzsetlevel <player> <skill> <level>` admin command
-- XP gain on jumps and landings
-- Double jump and wall jump abilities
+- Bonus XP on landing from height
+- Wall jump ability
+- Sprint / Endurance skill
 - Additional skill trees
 - Separate modules: `beanz-factions`, `beanz-raids`, `beanz-taming`, `beanz-world`
 
