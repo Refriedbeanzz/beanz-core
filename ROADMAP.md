@@ -66,12 +66,26 @@ The foundation skill. Proves the entire progression pipeline and gates the first
 - [x] HUD notification on successful use
 - [x] `JumpAbilityStateComponent` — per-player frame state (airtime, ability flags, wall contact, stamina recovery)
 
-**Planned Jump Unlocks**
-- [ ] XP gain on each jump (small amount, scales with jump height or distance)
-- [ ] XP gain on landing (scales with fall distance survived)
-- [ ] Double jump — second mid-air jump at ~level 40, reduced force *(next up)*
-- [ ] Wall jump — jump off a wall surface at ~level 75
-- [ ] Jump force tuning at level 100 (current value is too high)
+**Passive Scaling**
+- [x] Jump height increases with level
+- [x] Fall damage reduced by `JumpFallDamageSystem` (system built; scaling curve TBD)
+- [ ] Fall damage reduction scales explicitly with level (e.g. 0% at level 1 → full immunity at level 100)
+
+**XP Gain** *(use-based — not yet wired)*
+- [ ] XP on each jump (small amount, scales with jump height or distance)
+- [ ] Bonus XP on landing from height (scales with fall distance survived)
+
+**Ability Unlocks by Level**
+
+| Level | Unlock |
+|---|---|
+| 60 | ✅ SKY_LEAP — mid-air Ability3 boost |
+| ~40 | Double jump — second jump in air, reduced force |
+| ~75 | Wall jump — jump off a wall surface |
+| ~90 | TBD — high-mastery movement ability |
+
+**Tuning**
+- [ ] Jump force at level 100 is currently too high — needs scaling pass
 
 ---
 
@@ -86,6 +100,13 @@ Affects the stamina pool and regeneration rate. Since stamina already gates jump
 - [ ] Sprint duration scales with level
 - [ ] Passive: reduces stamina cost of jump at high Sprint level
 
+**Ability Unlocks by Level**
+
+| Level | Unlock |
+|---|---|
+| ~50 | Dash — short burst of speed on Ability input |
+| ~80 | Endurance Surge — temporary stamina regen boost |
+
 ---
 
 ### Parkour / Agility *(planned — extends Jump + Sprint)*
@@ -94,9 +115,17 @@ Combines jump, wall interactions, and fluid movement into a mastery track. Rathe
 
 - [ ] `AGILITY` skill type
 - [ ] XP gain from chaining movement actions (wall jumps, long jumps, landing from height)
-- [ ] Mantling / ledge grab ability
-- [ ] Reduced fall damage at high level
+- [ ] Mantling / ledge grab at mid level
+- [ ] Reduced fall damage at high level (supplements Jump's fall damage reduction)
 - [ ] Movement ability unlocks (speed burst, slide, etc.)
+
+**Ability Unlocks by Level**
+
+| Level | Unlock |
+|---|---|
+| ~30 | Mantle — grab and pull up onto ledges |
+| ~60 | Slide — quick low slide under obstacles |
+| ~80 | Blink — short-range forward dash through space |
 
 ---
 
@@ -108,35 +137,65 @@ Standard RPG combat structure, each skill uses the same XP + unlock pattern prov
 - [ ] `MELEE` skill type
 - [ ] XP on hit, bonus XP on kill
 - [ ] Damage bonus scales with level
-- [ ] Ability unlocks: heavy strike, parry, counter
+
+**Ability Unlocks by Level**
+
+| Level | Unlock |
+|---|---|
+| ~40 | Heavy Strike — charged slow hit with knockback |
+| ~60 | Parry — brief block window on Ability input |
+| ~80 | Counter — damage boost after successful parry |
 
 ### Ranged
 - [ ] `RANGED` skill type
 - [ ] XP on hit, bonus XP on kill
 - [ ] Accuracy / damage scales with level
-- [ ] Ability unlocks: charged shot, multi-shot
+
+**Ability Unlocks by Level**
+
+| Level | Unlock |
+|---|---|
+| ~40 | Charged Shot — hold to charge for increased damage/range |
+| ~70 | Multi-shot — fire multiple projectiles in a spread |
 
 ### Magic
 - [ ] `MAGIC` skill type
 - [ ] XP on ability use
-- [ ] Damage / effect scales with level
-- [ ] Ability unlocks: AOE, lingering effects
+- [ ] Damage / effect power scales with level
+
+**Ability Unlocks by Level**
+
+| Level | Unlock |
+|---|---|
+| ~40 | AOE Blast — area-of-effect burst |
+| ~70 | Lingering Effect — leave a damage/effect zone |
+| ~90 | TBD — high-mastery spell |
 
 ---
 
 ## Gathering Skills *(planned)*
 
-Core survival loop. XP awarded on resource actions.
+Core survival loop. XP awarded on resource actions. All gathering skills follow the same pattern: faster action + better yield as level increases, with an ability unlock at a mid and high threshold.
 
 - [ ] `MINING` — XP from breaking ore/stone nodes; faster break speed, better yield at high level
+  - Unlocks ~60: Vein Mine — break connected ore nodes in one action
+  - Unlocks ~85: Prospector's Eye — nearby ore nodes are highlighted briefly
 - [ ] `WOODCUTTING` — XP from felling trees; faster chop, bonus wood drops at high level
+  - Unlocks ~60: Fell — chop an entire tree at once
+  - Unlocks ~80: Splitter — bonus chance for planks/logs on each cut
 - [ ] `FORAGING` — XP from gathering plants/mushrooms/etc.; expanded loot table at high level
+  - Unlocks ~50: Keen Eye — rare plants appear in your vision briefly
+  - Unlocks ~75: Abundance — chance to gather double the yield
 
 ---
 
 ## Crafting Skills *(planned)*
 
+Each crafting skill uses the same unlock pattern — passive quality/speed improvements at low level, ability-style unlocks at mid and high thresholds.
+
 - [ ] `CRAFTING` — XP from crafting actions; unlock advanced recipes at high level
+  - Unlocks ~50: Bulk Craft — craft multiple items in one action
+  - Unlocks ~80: Inspired — chance to craft a superior-quality item
 - [ ] `SMITHING` — XP from forging gear; improved output quality/durability at high level
 - [ ] `BUILDING` — XP from placing blocks in structures; unlock build-mode abilities
 
