@@ -19,24 +19,24 @@ This document tracks what has been built, what is currently in progress, and the
 ## System Infrastructure
 
 ### Core Skill Framework
-- [x] `PlayerSkillsComponent` — persistent per-player skill data (level + XP) via entity component system
-- [x] `SkillLevelTable` — XP curve defining XP required per level (1–100)
-- [x] `SkillService` — get/create player skill data from world store
-- [x] `SkillType` enum — extensible type registry (currently: `JUMP`)
-- [x] `SkillSnapshot` — lightweight read-only skill state record
-- [x] `SkillRewardService` — central location for all skill-scaling formulas
+- ✅ `PlayerSkillsComponent` — persistent per-player skill data (level + XP) via entity component system
+- ✅ `SkillLevelTable` — XP curve defining XP required per level (1–100)
+- ✅ `SkillService` — get/create player skill data from world store
+- ✅ `SkillType` enum — extensible type registry (currently: `JUMP`)
+- ✅ `SkillSnapshot` — lightweight read-only skill state record
+- ✅ `SkillRewardService` — central location for all skill-scaling formulas
 
 ### Core Ability Framework
-- [x] `AbilityType` enum — extensible type registry (currently: `SKY_LEAP`)
-- [x] `AbilityManager` — handles unlock, cooldown, execution, and force calculation for all abilities
-- [x] `PlayerAbilityData` — persistent per-player ability state (unlocked abilities, cooldowns)
-- [x] `LevelUpNotificationService` — HUD notification on level-up
+- ✅ `AbilityType` enum — extensible type registry (currently: `SKY_LEAP`)
+- ✅ `AbilityManager` — handles unlock, cooldown, execution, and force calculation for all abilities
+- ✅ `PlayerAbilityData` — persistent per-player ability state (unlocked abilities, cooldowns)
+- ✅ `LevelUpNotificationService` — HUD notification on level-up
 
 ### Build & Deployment
-- [x] Gradle build with `deployToHytale` task
-- [x] Deploys to `%APPDATA%/Hytale/UserData/Mods`
-- [x] `hytaleHome` configurable via `gradle.properties`
-- [x] Plugin version injected into `manifest.json` / `plugin.json` at build time
+- ✅ Gradle build with `deployToHytale` task
+- ✅ Deploys to `%APPDATA%/Hytale/UserData/Mods`
+- ✅ `hytaleHome` configurable via `gradle.properties`
+- ✅ Plugin version injected into `manifest.json` / `plugin.json` at build time
 
 ---
 
@@ -47,28 +47,28 @@ This document tracks what has been built, what is currently in progress, and the
 The foundation skill. Proves the entire progression pipeline and gates the first set of air abilities.
 
 **Ground Jump**
-- [x] Passive jump force boost — scales with level via `getJumpMultiplier()`
-- [x] Jump force primed on ground tick so it applies on the first frame of takeoff
-- [x] Stamina cost per jump — decreases as level increases (`max(2.0, 5.5 - 0.05 * level)`, min cost at level 70)
-- [x] Stamina scales jump force — low stamina = lower jump
-- [x] Stamina consumed at the moment of jump, not on key press
-- [x] Stamina exhaustion recovery — timer resets sprint delay stat so regen resumes after full drain
-- [x] Ground jump detection distinguishes new press from held input
-- [x] Fall damage reduction via `JumpFallDamageSystem`
+- ✅ Passive jump force boost — scales with level via `getJumpMultiplier()`
+- ✅ Jump force primed on ground tick so it applies on the first frame of takeoff
+- ✅ Stamina cost per jump — decreases as level increases (`max(2.0, 5.5 - 0.05 * level)`, min cost at level 70)
+- ✅ Stamina scales jump force — low stamina = lower jump
+- ✅ Stamina consumed at the moment of jump, not on key press
+- ✅ Stamina exhaustion recovery — timer resets sprint delay stat so regen resumes after full drain
+- ✅ Ground jump detection distinguishes new press from held input
+- ✅ Fall damage reduction via `JumpFallDamageSystem`
 
 **SKY_LEAP Ability** *(unlocks at level 60)*
-- [x] Airborne-only mid-air boost via Ability3 input
-- [x] One use per airtime — resets on landing
-- [x] Respects cooldown
-- [x] Force calculation: `baseForce + skillBonus + abilityBonus * staminaRatio`
-- [x] Draws from same stamina pool as ground jump
-- [x] Bound to held item or wearable (helmet slot)
-- [x] HUD notification on successful use
-- [x] `JumpAbilityStateComponent` — per-player frame state (airtime, ability flags, wall contact, stamina recovery)
+- ✅ Airborne-only mid-air boost via Ability3 input
+- ✅ One use per airtime — resets on landing
+- ✅ Respects cooldown
+- ✅ Force calculation: `baseForce + skillBonus + abilityBonus * staminaRatio`
+- ✅ Draws from same stamina pool as ground jump
+- ✅ Bound to held item or wearable (helmet slot)
+- ✅ HUD notification on successful use
+- ✅ `JumpAbilityStateComponent` — per-player frame state (airtime, ability flags, wall contact, stamina recovery)
 
 **Passive Scaling**
-- [x] Jump height increases with level
-- [x] Fall damage reduced by `JumpFallDamageSystem` (system built; scaling curve TBD)
+- ✅ Jump height increases with level
+- ✅ Fall damage reduced by `JumpFallDamageSystem` (system built; scaling curve TBD)
 - [ ] Fall damage reduction scales explicitly with level (e.g. 0% at level 1 → full immunity at level 100)
 
 **XP Gain** *(use-based — not yet wired)*
@@ -203,8 +203,8 @@ Each crafting skill uses the same unlock pattern — passive quality/speed impro
 
 ## Admin & Tooling
 
-- [x] `/beanz` — base debug command
-- [x] `/beanzlevel <level>` — set your own jump level (1–100), syncs XP and ability unlocks
+- ✅ `/beanz` — base debug command
+- ✅ `/beanzlevel <level>` — set your own jump level (1–100), syncs XP and ability unlocks
 - [ ] `/beanzsetlevel <player> <skill> <level>` — set any online player's skill level *(in progress)*
 - [ ] Skill inspection command — view your own or another player's current skill levels
 - [ ] XP override command — add/remove XP from a specific skill
