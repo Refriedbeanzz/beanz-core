@@ -236,7 +236,9 @@ public class AbilityManager {
         double baseJumpForce = defaultSettings.jumpForce;
         int jumpLevel = skills.getLevel(SkillType.JUMP);
         double skillAdjustedJumpForce = baseJumpForce * rewardService.getJumpMultiplier(skills);
-        double finalJumpForce = baseJumpForce + (skillAdjustedJumpForce - baseJumpForce) * jumpRatio;
+        double skillBonus = skillAdjustedJumpForce - baseJumpForce;
+        double abilityBonus = skillAdjustedJumpForce * rewardService.getDoubleJumpForceScale() * jumpRatio;
+        double finalJumpForce = baseJumpForce + skillBonus + abilityBonus;
 
         double previousX = velocity.getX();
         double previousY = velocity.getY();
@@ -249,12 +251,12 @@ public class AbilityManager {
         velocity.setClient(finalVelocity);
 
         LOGGER.atInfo().log(
-            "[BeanzCore][AbilityDebug] SKY_LEAP final force for %s: jumpLevel=%s, baseForce=%.3f, skillAdjustedForce=%.3f, jumpRatio=%.3f, finalJumpForce=%.3f",
+            "[BeanzCore][AbilityDebug] SKY_LEAP final force for %s: jumpLevel=%s, baseForce=%.3f, skillBonus=%.3f, abilityBonus=%.3f, finalJumpForce=%.3f",
             usernameOf(playerRef, player),
             jumpLevel,
             baseJumpForce,
-            skillAdjustedJumpForce,
-            jumpRatio,
+            skillBonus,
+            abilityBonus,
             finalJumpForce
         );
 
