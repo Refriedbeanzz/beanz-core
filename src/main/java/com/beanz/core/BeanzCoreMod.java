@@ -138,8 +138,13 @@ public class BeanzCoreMod extends JavaPlugin {
     }
 
     public void syncAbilityUnlocks(PlayerRef playerRef, PlayerSkillsComponent skills, PlayerAbilityData abilityData) {
-        if (skills.getLevel(SkillType.JUMP) >= 60) {
-            abilityManager.unlockAbility(playerRef, abilityData, com.beanz.core.abilities.AbilityType.SKY_LEAP);
+        for (com.beanz.core.abilities.AbilityType ability : com.beanz.core.abilities.AbilityType.values()) {
+            int level = skills.getLevel(ability.getRequiredSkill());
+            if (ability.isUnlockedAtLevel(level)) {
+                abilityManager.unlockAbility(playerRef, abilityData, ability);
+            } else {
+                abilityManager.lockAbility(playerRef, abilityData, ability);
+            }
         }
     }
 

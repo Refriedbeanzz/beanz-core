@@ -207,6 +207,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         }
 
         if (!jumpInputDetected) {
+            tryFireBufferedSkyLeap(ref, player, skills, abilityData, jumpState, movementStatesComponent, movementManager, statMap, velocity, current.onGround);
             jumpState.setWasGrounded(current.onGround);
             jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
             return;
@@ -250,6 +251,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
                 skyLeapActive,
                 actionChosen
             );
+            tryFireBufferedSkyLeap(ref, player, skills, abilityData, jumpState, movementStatesComponent, movementManager, statMap, velocity, current.onGround);
             jumpState.setWasGrounded(current.onGround);
             jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
             return;
@@ -403,8 +405,43 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
             blockedReason
         );
 
+        tryFireBufferedSkyLeap(ref, player, skills, abilityData, jumpState, movementStatesComponent, movementManager, statMap, velocity, current.onGround);
         jumpState.setWasGrounded(current.onGround);
         jumpState.setJumpWasPressedLastTick(jumpCurrentlyPressed);
+    }
+
+    private void tryFireBufferedSkyLeap(
+        Ref<EntityStore> ref,
+        Player player,
+        PlayerSkillsComponent skills,
+        PlayerAbilityData abilityData,
+        JumpAbilityStateComponent jumpState,
+        com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent movementStatesComponent,
+        MovementManager movementManager,
+        EntityStatMap statMap,
+        Velocity velocity,
+        boolean onGround
+    ) {
+        if (jumpState.getBufferedSkyLeapPressTicks() <= 0) {
+            return;
+        }
+        jumpState.setBufferedSkyLeapPressTicks(jumpState.getBufferedSkyLeapPressTicks() - 1);
+        if (!onGround && jumpState.hasLeftGroundSinceInitialJump() && !jumpState.hasUsedSkyLeapThisAirtime()) {
+            jumpState.setBufferedSkyLeapPressTicks(0);
+            LOGGER.atInfo().log("[BeanzCore][Ability] Firing buffered SKY_LEAP for %s", ref);
+            BeanzCoreMod.getInstance().getAbilityManager().useSkyLeap(
+                player.getPlayerRef(),
+                player,
+                ref,
+                skills,
+                abilityData,
+                jumpState,
+                movementStatesComponent,
+                movementManager,
+                statMap,
+                velocity
+            );
+        }
     }
 
     private void logAbilityUnlocks(
@@ -549,7 +586,7 @@ public class JumpSkillSystem extends EntityTickingSystem<EntityStore> {
         }
 
         return switch (abilityType) {
-            case GROUND -> fullJumpForce * jumpRatio;
+            case GROUND -> baseJumpForce + (fullJumpForce - baseJumpForce) * jumpRatio;
             case DOUBLE -> fullJumpForce * rewardService.getDoubleJumpForceScale() * jumpRatio;
             case WALL -> fullJumpForce * rewardService.getWallJumpVerticalForceScale() * jumpRatio;
         };

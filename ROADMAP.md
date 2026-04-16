@@ -2,7 +2,7 @@
 
 > Last updated: April 2026
 
-This document tracks what has been built, what is currently in progress, and the full planned vision for the server's skill system.
+This document tracks what has been built and what's planned for the server's skill and ability systems.
 
 ---
 
@@ -11,8 +11,8 @@ This document tracks what has been built, what is currently in progress, and the
 - **Use-based progression** — skills level up by doing, not from quests or menus
 - **No hard classes** — players build flexible characters by choosing which skills they invest in
 - **Natural improvement** — leveling feels like genuine mastery, not arbitrary numbers
-- **Abilities unlock through mastery** — not handed out, earned through reaching thresholds
-- **Jump is the testbed** — it proves every system (input detection, XP tracking, stat scaling, ability triggering, player feedback) before the pattern gets applied to every other skill
+- **Abilities unlock through mastery** — not handed out, earned by reaching thresholds
+- **Jump is the testbed** — proves every system before the pattern gets applied to other skills
 
 ---
 
@@ -27,7 +27,7 @@ This document tracks what has been built, what is currently in progress, and the
 - ✅ `SkillRewardService` — central location for all skill-scaling formulas
 
 ### Core Ability Framework
-- ✅ `AbilityType` enum — extensible type registry (currently: `SKY_LEAP`)
+- ✅ `AbilityType` enum — extensible type registry; each entry carries its own skill + level unlock requirement
 - ✅ `AbilityManager` — handles unlock, cooldown, execution, and force calculation for all abilities
 - ✅ `PlayerAbilityData` — persistent per-player ability state (unlocked abilities, cooldowns)
 - ✅ `LevelUpNotificationService` — HUD notification on level-up
@@ -47,45 +47,39 @@ This document tracks what has been built, what is currently in progress, and the
 The foundation skill. Proves the entire progression pipeline and gates the first set of air abilities.
 
 **Ground Jump**
-- ✅ Passive jump force boost — scales with level via `getJumpMultiplier()`
-- ✅ Jump force primed on ground tick so it applies on the first frame of takeoff
-- ✅ Stamina cost per jump — decreases as level increases (`max(2.0, 5.5 - 0.05 * level)`, min cost at level 70)
-- ✅ Stamina scales jump force — low stamina = lower jump
-- ✅ Stamina consumed at the moment of jump, not on key press
-- ✅ Stamina exhaustion recovery — timer resets sprint delay stat so regen resumes after full drain
-- ✅ Ground jump detection distinguishes new press from held input
-- ✅ Fall damage reduction via `JumpFallDamageSystem`
+- ✅ Jump height scales with level — up to 1.5× base at level 100
+- ✅ Jump force is primed on the ground tick so it applies on the first frame of takeoff
+- ✅ Stamina cost per jump — decreases as level increases, reaching minimum cost at level 70
+- ✅ Low stamina means a lower jump — stamina scales jump force
+- ✅ Stamina is consumed at the moment of jump, not on key press
+- ✅ Stamina exhaustion recovery — regen resumes automatically after full drain
+- ✅ Ground jump input detection distinguishes a new press from a held key
 
-**SKY_LEAP Ability** *(unlocks at level 60)*
-- ✅ Airborne-only mid-air boost via Ability3 input
+**Sky Leap** *(unlocks at level 60)*
+- ✅ Mid-air boost — activate with the Ability 3 key while airborne
 - ✅ One use per airtime — resets on landing
-- ✅ Respects cooldown
-- ✅ Force calculation: `baseForce + skillBonus + abilityBonus * staminaRatio`
-- ✅ Draws from same stamina pool as ground jump
+- ✅ Respects cooldown between uses
+- ✅ Force scales with jump level and current stamina
+- ✅ Draws from the same stamina pool as ground jump
 - ✅ Bound to held item or wearable (helmet slot)
 - ✅ HUD notification on successful use
-- ✅ `JumpAbilityStateComponent` — per-player frame state (airtime, ability flags, wall contact, stamina recovery)
+- ✅ Input buffering — pressing Ability 3 a fraction of a second early still triggers correctly
 
 **Passive Scaling**
 - ✅ Jump height increases with level
-- ✅ Fall damage reduced by `JumpFallDamageSystem` (system built; scaling curve TBD)
-- [ ] Fall damage reduction scales explicitly with level (e.g. 0% at level 1 → full immunity at level 100)
+- ✅ Fall damage reduction scales with level — 0% at level 1, full immunity at level 100
 
-**XP Gain** *(use-based — not yet wired)*
-- [ ] XP on each jump (small amount, scales with jump height or distance)
+**XP Gain**
+- ✅ XP awarded on each jump
 - [ ] Bonus XP on landing from height (scales with fall distance survived)
 
 **Ability Unlocks by Level**
 
-| Level | Unlock |
-|---|---|
-| 60 | ✅ SKY_LEAP — mid-air Ability3 boost |
-| ~40 | Double jump — second jump in air, reduced force |
-| ~75 | Wall jump — jump off a wall surface |
-| ~90 | TBD — high-mastery movement ability |
-
-**Tuning**
-- [ ] Jump force at level 100 is currently too high — needs scaling pass
+| Level | Ability | Status |
+|---|---|---|
+| 60 | Sky Leap — mid-air Ability 3 boost | ✅ Built |
+| ~75 | Wall Jump — jump off a wall surface | Planned |
+| ~90 | TBD — high-mastery movement ability | Planned |
 
 ---
 
@@ -93,16 +87,15 @@ The foundation skill. Proves the entire progression pipeline and gates the first
 
 Affects the stamina pool and regeneration rate. Since stamina already gates jump effectiveness, Sprint and Jump are naturally coupled — a high Sprint player jumps better for longer.
 
-- [ ] `SPRINT` skill type
 - [ ] XP gain from sprinting
-- [ ] Stamina pool size scales with Sprint level
-- [ ] Stamina regen rate scales with Sprint level
+- [ ] Stamina pool size scales with level
+- [ ] Stamina regen rate scales with level
 - [ ] Sprint duration scales with level
-- [ ] Passive: reduces stamina cost of jump at high Sprint level
+- [ ] Passive: reduces stamina cost of jump at high level
 
 **Ability Unlocks by Level**
 
-| Level | Unlock |
+| Level | Ability |
 |---|---|
 | ~50 | Dash — short burst of speed on Ability input |
 | ~80 | Endurance Surge — temporary stamina regen boost |
@@ -113,7 +106,6 @@ Affects the stamina pool and regeneration rate. Since stamina already gates jump
 
 Combines jump, wall interactions, and fluid movement into a mastery track. Rather than pure stat boosts, Agility unlocks movement abilities.
 
-- [ ] `AGILITY` skill type
 - [ ] XP gain from chaining movement actions (wall jumps, long jumps, landing from height)
 - [ ] Mantling / ledge grab at mid level
 - [ ] Reduced fall damage at high level (supplements Jump's fall damage reduction)
@@ -121,7 +113,7 @@ Combines jump, wall interactions, and fluid movement into a mastery track. Rathe
 
 **Ability Unlocks by Level**
 
-| Level | Unlock |
+| Level | Ability |
 |---|---|
 | ~30 | Mantle — grab and pull up onto ledges |
 | ~60 | Slide — quick low slide under obstacles |
@@ -129,43 +121,34 @@ Combines jump, wall interactions, and fluid movement into a mastery track. Rathe
 
 ---
 
-## Combat Skills *(planned framework)*
+## Combat Skills *(planned)*
 
-Standard RPG combat structure, each skill uses the same XP + unlock pattern proven by Jump.
+Standard RPG combat structure. Each skill uses the same XP + unlock pattern proven by Jump.
 
 ### Melee
-- [ ] `MELEE` skill type
 - [ ] XP on hit, bonus XP on kill
 - [ ] Damage bonus scales with level
 
-**Ability Unlocks by Level**
-
-| Level | Unlock |
+| Level | Ability |
 |---|---|
 | ~40 | Heavy Strike — charged slow hit with knockback |
 | ~60 | Parry — brief block window on Ability input |
 | ~80 | Counter — damage boost after successful parry |
 
 ### Ranged
-- [ ] `RANGED` skill type
 - [ ] XP on hit, bonus XP on kill
 - [ ] Accuracy / damage scales with level
 
-**Ability Unlocks by Level**
-
-| Level | Unlock |
+| Level | Ability |
 |---|---|
 | ~40 | Charged Shot — hold to charge for increased damage/range |
 | ~70 | Multi-shot — fire multiple projectiles in a spread |
 
 ### Magic
-- [ ] `MAGIC` skill type
 - [ ] XP on ability use
 - [ ] Damage / effect power scales with level
 
-**Ability Unlocks by Level**
-
-| Level | Unlock |
+| Level | Ability |
 |---|---|
 | ~40 | AOE Blast — area-of-effect burst |
 | ~70 | Lingering Effect — leave a damage/effect zone |
@@ -175,62 +158,47 @@ Standard RPG combat structure, each skill uses the same XP + unlock pattern prov
 
 ## Gathering Skills *(planned)*
 
-Core survival loop. XP awarded on resource actions. All gathering skills follow the same pattern: faster action + better yield as level increases, with an ability unlock at a mid and high threshold.
+Core survival loop. XP awarded on resource actions. All gathering skills follow the same pattern: faster action and better yield as level increases, with ability unlocks at mid and high thresholds.
 
-- [ ] `MINING` — XP from breaking ore/stone nodes; faster break speed, better yield at high level
-  - Unlocks ~60: Vein Mine — break connected ore nodes in one action
-  - Unlocks ~85: Prospector's Eye — nearby ore nodes are highlighted briefly
-- [ ] `WOODCUTTING` — XP from felling trees; faster chop, bonus wood drops at high level
-  - Unlocks ~60: Fell — chop an entire tree at once
-  - Unlocks ~80: Splitter — bonus chance for planks/logs on each cut
-- [ ] `FORAGING` — XP from gathering plants/mushrooms/etc.; expanded loot table at high level
-  - Unlocks ~50: Keen Eye — rare plants appear in your vision briefly
-  - Unlocks ~75: Abundance — chance to gather double the yield
+- [ ] **Mining** — XP from breaking ore/stone; faster break speed, better yield at high level
+  - ~60: Vein Mine — break connected ore nodes in one action
+  - ~85: Prospector's Eye — nearby ore nodes highlighted briefly
+- [ ] **Woodcutting** — XP from felling trees; faster chop, bonus wood drops at high level
+  - ~60: Fell — chop an entire tree at once
+  - ~80: Splitter — bonus chance for planks on each cut
+- [ ] **Foraging** — XP from gathering plants/mushrooms; expanded loot table at high level
+  - ~50: Keen Eye — rare plants appear in your vision briefly
+  - ~75: Abundance — chance to gather double the yield
 
 ---
 
 ## Crafting Skills *(planned)*
 
-Each crafting skill uses the same unlock pattern — passive quality/speed improvements at low level, ability-style unlocks at mid and high thresholds.
-
-- [ ] `CRAFTING` — XP from crafting actions; unlock advanced recipes at high level
-  - Unlocks ~50: Bulk Craft — craft multiple items in one action
-  - Unlocks ~80: Inspired — chance to craft a superior-quality item
-- [ ] `SMITHING` — XP from forging gear; improved output quality/durability at high level
-- [ ] `BUILDING` — XP from placing blocks in structures; unlock build-mode abilities
+- [ ] **Crafting** — XP from crafting; unlock advanced recipes at high level
+  - ~50: Bulk Craft — craft multiple items in one action
+  - ~80: Inspired — chance to craft a superior-quality item
+- [ ] **Smithing** — XP from forging gear; improved output quality/durability at high level
+- [ ] **Building** — XP from placing blocks in structures; unlock build-mode abilities
 
 ---
 
 ## Admin & Tooling
 
-- ✅ `/beanz` — base debug command
-- ✅ `/beanzlevel <level>` — set your own jump level (1–100), syncs XP and ability unlocks
-- [ ] `/beanzsetlevel <player> <skill> <level>` — set any online player's skill level *(in progress)*
+- ✅ `/beanz` — base debug command and skill inspector
+- ✅ `/beanzlevel <1-100>` — set your own jump level; syncs XP and ability unlocks
+- ✅ `/beanzlevel <player> <skill> <level>` — set any online player's skill level; syncs their ability unlocks
 - [ ] Skill inspection command — view your own or another player's current skill levels
 - [ ] XP override command — add/remove XP from a specific skill
 
 ---
 
-## In Progress
+## Progression Path
 
-| Feature | Notes |
-|---|---|
-| `/beanzlevel` arg parsing | Hytale `RequiredArg` constructor is `(AbstractCommand, name, desc, ArgType)` — fix in progress |
-| `/beanzsetlevel <player> <skill> <level>` | New admin command class; depends on arg fix |
-| Jump force tuning at level 100 | Current force too high — needs scaling pass |
-| XP gain on jump | First real use-based progression loop for the Jump skill |
-
----
-
-## Clean Progression Path
-
-The intended order of implementation once Jump is fully polished:
+The intended order of implementation:
 
 ```
 Jump (done)
-  └─ XP on jump/landing
-  └─ Double jump unlock
-  └─ Wall jump unlock
+  └─ Bonus XP on landing from height
 
 Sprint / Endurance
   └─ Stamina pool scaling
@@ -270,4 +238,5 @@ These will be separate mods that depend on Beanz Core as their framework.
 - Systems tick every server frame via `getEntityStoreRegistry().registerSystem(...)`
 - Skill scaling formulas live in `SkillRewardService` — add new skills there first
 - Ability execution is gated through `AbilityManager` — add new `AbilityType` values and handle them there
+- Each `AbilityType` carries its own skill + level unlock requirement — `syncAbilityUnlocks` automatically locks/unlocks all abilities when a player's level changes
 - `SkillType` and `AbilityType` enums are intentionally extensible — adding a skill is an enum value + a system

@@ -73,6 +73,18 @@ public class AbilityManager {
         );
     }
 
+    public void lockAbility(PlayerRef playerRef, PlayerAbilityData abilityData, AbilityType type) {
+        if (abilityData == null || !abilityData.isUnlocked(type)) {
+            return;
+        }
+        abilityData.lock(type);
+        LOGGER.atInfo().log(
+            "[BeanzCore][Ability] Locked %s for %s",
+            type,
+            playerRef != null ? playerRef.getUsername() : "unknown-player"
+        );
+    }
+
     public boolean isUnlocked(PlayerAbilityData abilityData, AbilityType type) {
         return abilityData != null && abilityData.isUnlocked(type);
     }
@@ -175,9 +187,16 @@ public class AbilityManager {
             return false;
         }
 
-        boolean airborne = !movementStates.getMovementStates().onGround && jumpState.hasLeftGroundSinceInitialJump();
+        boolean notOnGround = !movementStates.getMovementStates().onGround;
+        boolean hasLeftGround = jumpState.hasLeftGroundSinceInitialJump();
+        boolean airborne = notOnGround && hasLeftGround;
         if (!airborne) {
-            LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: not airborne for %s", usernameOf(playerRef, player));
+            jumpState.setBufferedSkyLeapPressTicks(5);
+            if (notOnGround) {
+                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP buffered: airborne but jump tick not processed yet for %s", usernameOf(playerRef, player));
+            } else {
+                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP buffered: still on ground (jump not registered yet) for %s", usernameOf(playerRef, player));
+            }
             return false;
         }
 
@@ -218,7 +237,7 @@ public class AbilityManager {
         int jumpLevel = skills.getLevel(SkillType.JUMP);
         double skillAdjustedJumpForce = baseJumpForce * rewardService.getJumpMultiplier(skills);
         double skillBonus = skillAdjustedJumpForce - baseJumpForce;
-        double abilityBonus = skillAdjustedJumpForce * rewardService.getDoubleJumpForceScale() * jumpRatio;
+        double abilityBonus = skillAdjustedJumpForce * rewardService.getSkyLeapForceScale() * jumpRatio;
         double finalJumpForce = baseJumpForce + skillBonus + abilityBonus;
 
         double previousX = velocity.getX();
@@ -232,9 +251,10 @@ public class AbilityManager {
         velocity.setClient(finalVelocity);
 
         LOGGER.atInfo().log(
-            "[BeanzCore][AbilityDebug] SKY_LEAP final force for %s: jumpLevel=%s, skillBonus=%.3f, abilityBonus=%.3f, finalJumpForce=%.3f",
+            "[BeanzCore][AbilityDebug] SKY_LEAP final force for %s: jumpLevel=%s, baseForce=%.3f, skillBonus=%.3f, abilityBonus=%.3f, finalJumpForce=%.3f",
             usernameOf(playerRef, player),
             jumpLevel,
+            baseJumpForce,
             skillBonus,
             abilityBonus,
             finalJumpForce
