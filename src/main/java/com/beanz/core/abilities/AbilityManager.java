@@ -191,11 +191,11 @@ public class AbilityManager {
         boolean hasLeftGround = jumpState.hasLeftGroundSinceInitialJump();
         boolean airborne = notOnGround && hasLeftGround;
         if (!airborne) {
-            if (notOnGround && !hasLeftGround) {
-                jumpState.setBufferedSkyLeapPressTicks(8);
-                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP buffered: physically airborne but jump tick not processed yet for %s", usernameOf(playerRef, player));
+            jumpState.setBufferedSkyLeapPressTicks(5);
+            if (notOnGround) {
+                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP buffered: airborne but jump tick not processed yet for %s", usernameOf(playerRef, player));
             } else {
-                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP blocked: not airborne for %s", usernameOf(playerRef, player));
+                LOGGER.atInfo().log("[BeanzCore][Ability] SKY_LEAP buffered: still on ground (jump not registered yet) for %s", usernameOf(playerRef, player));
             }
             return false;
         }
