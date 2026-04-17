@@ -9,6 +9,8 @@ import com.beanz.core.skills.JumpSkillSystem;
 import com.beanz.core.skills.JumpFallDamageSystem;
 import com.beanz.core.skills.JumpAbilityStateComponent;
 import com.beanz.core.skills.PlayerSkillsComponent;
+import com.beanz.core.skills.RunningAbilityStateComponent;
+import com.beanz.core.skills.RunningSkillSystem;
 import com.beanz.core.skills.SkillLevelTable;
 import com.beanz.core.skills.SkillService;
 import com.beanz.core.skills.SkillSnapshot;
@@ -98,9 +100,17 @@ public class BeanzCoreMod extends JavaPlugin {
                 WearableAbilityTestStateComponent.CODEC
             )
         );
+        RunningAbilityStateComponent.setComponentType(
+            getEntityStoreRegistry().registerComponent(
+                RunningAbilityStateComponent.class,
+                "beanz:running_ability_state",
+                RunningAbilityStateComponent.CODEC
+            )
+        );
         getCodecRegistry(Interaction.CODEC).register("Beanz_Test_Ability", TestAbility3Interaction.class, TestAbility3Interaction.CODEC);
         getEntityStoreRegistry().registerSystem(new JumpSkillSystem());
         getEntityStoreRegistry().registerSystem(new JumpFallDamageSystem());
+        getEntityStoreRegistry().registerSystem(new RunningSkillSystem());
         getEntityStoreRegistry().registerSystem(new WearableAbilityTestSystem());
         getEventRegistry().register(PlayerConnectEvent.class, this::onPlayerConnect);
 
@@ -122,18 +132,27 @@ public class BeanzCoreMod extends JavaPlugin {
             wearableTestState = new WearableAbilityTestStateComponent();
             event.getHolder().addComponent(WearableAbilityTestStateComponent.getComponentType(), wearableTestState);
         }
+        RunningAbilityStateComponent runState = event.getHolder().getComponent(RunningAbilityStateComponent.getComponentType());
+        if (runState == null) {
+            runState = new RunningAbilityStateComponent();
+            event.getHolder().addComponent(RunningAbilityStateComponent.getComponentType(), runState);
+        }
+        runState.clearOverdrive();
         jumpState.resetAirAbilities();
         jumpState.setWasGrounded(true);
         runOneTimeJumpReset(skills, event.getPlayerRef());
         runOneTimeJumpTestBoost(skills, event.getPlayerRef());
         syncAbilityUnlocks(event.getPlayerRef(), skills, abilityData);
         SkillSnapshot jumpSnapshot = skillService.getSnapshot(skills, SkillType.JUMP);
+        SkillSnapshot runningSnapshot = skillService.getSnapshot(skills, SkillType.RUNNING);
 
         LOGGER.atInfo().log(
-            "Initialized skill data for %s (Jump level=%s, xp=%s)",
+            "Initialized skill data for %s (Jump level=%s xp=%s, Running level=%s xp=%s)",
             event.getPlayerRef().getUsername(),
             jumpSnapshot.level(),
-            jumpSnapshot.xp()
+            jumpSnapshot.xp(),
+            runningSnapshot.level(),
+            runningSnapshot.xp()
         );
     }
 

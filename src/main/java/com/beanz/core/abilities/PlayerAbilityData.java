@@ -13,11 +13,14 @@ public class PlayerAbilityData implements Component<EntityStore> {
         .builder(PlayerAbilityData.class, PlayerAbilityData::new)
         .append(new KeyedCodec<>("SkyLeap", AbilityData.CODEC), PlayerAbilityData::setSkyLeap, PlayerAbilityData::getSkyLeap)
         .add()
+        .append(new KeyedCodec<>("Overdrive", AbilityData.CODEC), PlayerAbilityData::setOverdrive, PlayerAbilityData::getOverdrive)
+        .add()
         .build();
 
     private static ComponentType<EntityStore, PlayerAbilityData> componentType;
 
     private AbilityData skyLeap = defaultData(AbilityType.SKY_LEAP);
+    private AbilityData overdrive = defaultData(AbilityType.OVERDRIVE);
 
     public static ComponentType<EntityStore, PlayerAbilityData> getComponentType() {
         return componentType;
@@ -30,6 +33,7 @@ public class PlayerAbilityData implements Component<EntityStore> {
     public AbilityData get(AbilityType type) {
         return switch (type) {
             case SKY_LEAP -> skyLeap;
+            case OVERDRIVE -> overdrive;
         };
     }
 
@@ -57,6 +61,7 @@ public class PlayerAbilityData implements Component<EntityStore> {
     public Map<AbilityType, AbilityData> asMap() {
         Map<AbilityType, AbilityData> abilities = new EnumMap<>(AbilityType.class);
         abilities.put(AbilityType.SKY_LEAP, skyLeap);
+        abilities.put(AbilityType.OVERDRIVE, overdrive);
         return abilities;
     }
 
@@ -68,10 +73,19 @@ public class PlayerAbilityData implements Component<EntityStore> {
         this.skyLeap = skyLeap != null ? skyLeap : defaultData(AbilityType.SKY_LEAP);
     }
 
+    public AbilityData getOverdrive() {
+        return overdrive;
+    }
+
+    public void setOverdrive(AbilityData overdrive) {
+        this.overdrive = overdrive != null ? overdrive : defaultData(AbilityType.OVERDRIVE);
+    }
+
     @Override
     public PlayerAbilityData clone() {
         PlayerAbilityData copy = new PlayerAbilityData();
         copy.skyLeap = this.skyLeap.copy();
+        copy.overdrive = this.overdrive.copy();
         return copy;
     }
 

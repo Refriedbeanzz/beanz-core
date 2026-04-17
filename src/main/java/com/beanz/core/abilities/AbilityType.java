@@ -3,7 +3,8 @@ package com.beanz.core.abilities;
 import com.beanz.core.skills.SkillType;
 
 public enum AbilityType {
-    SKY_LEAP(SkillType.JUMP, 60);
+    SKY_LEAP(SkillType.JUMP, 60),
+    OVERDRIVE(SkillType.RUNNING, 50);
 
     private final SkillType requiredSkill;
     private final int requiredLevel;

@@ -17,6 +17,14 @@ public class SkillRewardService {
     private static final double WALL_JUMP_VERTICAL_FORCE_SCALE = 0.85;
     private static final double WALL_JUMP_HORIZONTAL_FORCE = 7.5;
 
+    // Running skill
+    private static final double MAX_RUN_SPEED_MULTIPLIER = 1.2;   // 20% faster running at level 100
+    private static final double MAX_SPRINT_SPEED_MULTIPLIER = 1.25; // 25% faster sprinting at level 100
+    private static final double MAX_SPRINT_STAMINA_RETURN_PER_TICK = 0.08f; // stamina returned per tick at level 100
+    private static final double OVERDRIVE_SPRINT_BONUS = 0.25;    // 25% on top of current sprint multiplier
+    private static final long OVERDRIVE_DURATION_MS = 10_000L;
+    private static final long OVERDRIVE_COOLDOWN_MS = 30_000L;
+
     public double getTotalReward(PlayerSkillsComponent skills, RewardType rewardType) {
         return getRewardsForSkill(skills, SkillType.JUMP).getOrDefault(rewardType, defaultValueFor(rewardType));
     }
@@ -78,6 +86,35 @@ public class SkillRewardService {
 
     public double getWallJumpHorizontalForce(PlayerSkillsComponent skills) {
         return WALL_JUMP_HORIZONTAL_FORCE * (0.85 + (0.15 * normalizedProgress(skills.getLevel(SkillType.JUMP))));
+    }
+
+    // --- Running skill ---
+
+    public double getRunSpeedMultiplier(PlayerSkillsComponent skills) {
+        double progression = normalizedProgress(skills.getLevel(SkillType.RUNNING));
+        return 1.0 + ((MAX_RUN_SPEED_MULTIPLIER - 1.0) * progression);
+    }
+
+    public double getSprintSpeedMultiplier(PlayerSkillsComponent skills) {
+        double progression = normalizedProgress(skills.getLevel(SkillType.RUNNING));
+        return 1.0 + ((MAX_SPRINT_SPEED_MULTIPLIER - 1.0) * progression);
+    }
+
+    public float getSprintStaminaReturnPerTick(PlayerSkillsComponent skills) {
+        double progression = normalizedProgress(skills.getLevel(SkillType.RUNNING));
+        return (float) (MAX_SPRINT_STAMINA_RETURN_PER_TICK * progression);
+    }
+
+    public double getOverdriveSprintBonus() {
+        return OVERDRIVE_SPRINT_BONUS;
+    }
+
+    public long getOverdriveDurationMs() {
+        return OVERDRIVE_DURATION_MS;
+    }
+
+    public long getOverdriveCooldownMs() {
+        return OVERDRIVE_COOLDOWN_MS;
     }
 
     private double calculateJumpMultiplier(int level) {

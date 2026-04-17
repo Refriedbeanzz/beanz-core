@@ -20,6 +20,10 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
             PlayerSkillsComponent::isJumpNotificationsEnabled
         )
         .add()
+        .append(new KeyedCodec<>("RunningXp", Codec.INTEGER), PlayerSkillsComponent::setRunningXp, PlayerSkillsComponent::getRunningXp)
+        .add()
+        .append(new KeyedCodec<>("RunningLevel", Codec.INTEGER), PlayerSkillsComponent::setRunningLevel, PlayerSkillsComponent::getRunningLevel)
+        .add()
         .build();
 
     private static ComponentType<EntityStore, PlayerSkillsComponent> componentType;
@@ -27,6 +31,8 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
     private int jumpXp;
     private int jumpLevel = 1;
     private boolean jumpNotificationsEnabled = true;
+    private int runningXp;
+    private int runningLevel = 1;
 
     public static ComponentType<EntityStore, PlayerSkillsComponent> getComponentType() {
         return componentType;
@@ -39,24 +45,28 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
     public int getXp(SkillType skillType) {
         return switch (skillType) {
             case JUMP -> jumpXp;
+            case RUNNING -> runningXp;
         };
     }
 
     public void setXp(SkillType skillType, int xp) {
         switch (skillType) {
             case JUMP -> jumpXp = xp;
+            case RUNNING -> runningXp = xp;
         }
     }
 
     public int getLevel(SkillType skillType) {
         return switch (skillType) {
             case JUMP -> jumpLevel;
+            case RUNNING -> runningLevel;
         };
     }
 
     public void setLevel(SkillType skillType, int level) {
         switch (skillType) {
             case JUMP -> jumpLevel = level;
+            case RUNNING -> runningLevel = level;
         }
     }
 
@@ -68,12 +78,14 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
     public boolean isNotificationEnabled(SkillType skillType) {
         return switch (skillType) {
             case JUMP -> jumpNotificationsEnabled;
+            case RUNNING -> true;
         };
     }
 
     public void setNotificationEnabled(SkillType skillType, boolean enabled) {
         switch (skillType) {
             case JUMP -> jumpNotificationsEnabled = enabled;
+            case RUNNING -> {}
         }
     }
 
@@ -105,12 +117,30 @@ public class PlayerSkillsComponent implements Component<EntityStore> {
         this.jumpNotificationsEnabled = jumpNotificationsEnabled;
     }
 
+    public int getRunningXp() {
+        return runningXp;
+    }
+
+    public void setRunningXp(int runningXp) {
+        this.runningXp = runningXp;
+    }
+
+    public int getRunningLevel() {
+        return runningLevel;
+    }
+
+    public void setRunningLevel(int runningLevel) {
+        this.runningLevel = runningLevel;
+    }
+
     @Override
     public PlayerSkillsComponent clone() {
         PlayerSkillsComponent copy = new PlayerSkillsComponent();
         copy.jumpXp = this.jumpXp;
         copy.jumpLevel = this.jumpLevel;
         copy.jumpNotificationsEnabled = this.jumpNotificationsEnabled;
+        copy.runningXp = this.runningXp;
+        copy.runningLevel = this.runningLevel;
         return copy;
     }
 }
