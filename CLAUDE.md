@@ -22,3 +22,4 @@ When the user says "end of session":
 3. Update PLAN.md to reflect current state and next steps
 4. Update ROADMAP.md if anything shipped, changed scope, or new features were planned
 5. Update the Notion page: fill in "Where We Left Off", "Next Step", set "Last Session" to today, and add any new tasks to the linked Tasks database
+6. Commit the updated docs (DEVLOG.md, PLAN.md, ROADMAP.md, CHANGELOG.md if changed) and push to `main`
