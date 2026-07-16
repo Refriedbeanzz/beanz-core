@@ -1,8 +1,6 @@
 package com.beanz.core;
 
 import com.beanz.core.skills.PlayerSkillsComponent;
-import com.beanz.core.skills.LevelProgress;
-import com.beanz.core.skills.SkillLevelTable;
 import com.beanz.core.skills.SkillService;
 import com.beanz.core.skills.SkillSnapshot;
 import com.beanz.core.skills.SkillType;
@@ -44,17 +42,17 @@ public class BeanzCommand extends AbstractPlayerCommand {
 
         PlayerSkillsComponent skills = BeanzCoreMod.getInstance().getOrCreateSkills(playerRef, store, ref);
         SkillService skillService = BeanzCoreMod.getInstance().getSkillService();
+
         SkillSnapshot jumpSnapshot = skillService.getSnapshot(skills, SkillType.JUMP);
-        LevelProgress progress = SkillLevelTable.getProgress(jumpSnapshot.xp());
-        BeanzMenuViewData viewData = BeanzMenuViewData.from(jumpSnapshot, progress);
+        SkillSnapshot runningSnapshot = skillService.getSnapshot(skills, SkillType.RUNNING);
+
+        BeanzMenuViewData viewData = BeanzMenuViewData.from(jumpSnapshot, runningSnapshot);
 
         LOGGER.atInfo().log(
-            "Opening /beanz UI for %s with Jump values: skill=%s, xp=%s, level=%s, progress=%.3f",
+            "Opening /beanz UI for %s — Jump: level=%s xp=%s | Running: level=%s xp=%s",
             playerRef != null ? playerRef.getUsername() : "unknown-player",
-            jumpSnapshot.skillName(),
-            jumpSnapshot.xp(),
-            jumpSnapshot.level(),
-            progress.progressFraction()
+            jumpSnapshot.level(), jumpSnapshot.xp(),
+            runningSnapshot.level(), runningSnapshot.xp()
         );
 
         player.getPageManager().openCustomPage(ref, store, new BeanzMenuPage(playerRef, viewData));

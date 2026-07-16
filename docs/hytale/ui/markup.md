@@ -1,138 +1,144 @@
-# Hytale UI Markup
+# Markup
 
-> Source: Official Hytale Documentation  
-> Cleaned for internal dev use
+> Source: Official Hytale Documentation — Hypixel Studios Canada Inc.  
+> https://github.com/HytaleModding/site/tree/main/content/docs/en/official-documentation/custom-ui
 
 ---
 
-# Markup Fundamentals
+## Markup
 
-UI markup is built from element trees inside `.ui` documents.
-
-- an element is the basic building block
-- documents can contain multiple root elements
-- properties define behavior, appearance, and layout
-- child elements create the UI tree
-
-Basic example:
+An element is the basic building block of a user interface. There are various types of elements with different properties.
 
 ```ui
-Group {
-    Anchor: (Full: 10);
-}
-```
+// Basic declaration of an element
+// attached on all sides of its parent with 10 pixels of margin
+Group { Anchor: (Left: 10, Top: 10, Right: 10, Bottom: 10); }
 
-Named element example:
+Group { Anchor: (Full: 10); } // More concise version
 
-```ui
+// Declaration of a Label with a name
+// (can be used to access the element from game code)
 Label #MyLabel {
-  Style: (FontSize: 16);
+  Style: LabelStyle(FontSize: 16); // or just Style: (FontSize: 16), type can be inferred
   Text: "Hi! I am text.";
 }
+
+// Declaration of a Group containing 2 children
+// FlexWeight distributes leftover space after explicit widths/heights
+Group {
+  LayoutMode: Left;
+  Label { Text: "Child 1"; FlexWeight: 2; }
+  Label { Text: "Child 2"; FlexWeight: 1; }
+}
 ```
 
-Named elements can be targeted from game code and selectors.
+---
+
+## Documents
+
+A UI document (`.ui` file) contains trees of elements. There can be multiple root elements.
 
 ---
 
-# Documents
+## Named Expressions
 
-A `.ui` file contains one or more trees of elements.
-
-- multiple root elements are allowed
-- each subtree can contain its own scoped named expressions
-- referenced assets and relative paths resolve from the file where they are declared
-
----
-
-# Named Expressions
-
-Named expressions are declared with `@` and are scoped to their subtree.
-
-They must appear at the top of the block where they are declared.
+Named expressions can be declared at any level of a document (including at the root) and are scoped to that subtree. They must be declared at the top of the block.
 
 ```ui
 @Title = "Hytale";
 @ExtraSpacing = 5;
+
 Label {
   Text: @Title;
   Style: (LetterSpacing: 2 + @ExtraSpacing);
 }
 ```
 
-Use them for:
+### Spread Operator
 
-- reusable values
-- reusable styles
-- reusable template fragments
-
-## Spread Operator
-
-`...` reuses a named object while overriding fields.
+Use `...` to reuse a named expression while overriding some of its fields:
 
 ```ui
 @MyBaseStyle = LabelStyle(FontSize: 24, LetterSpacing: 2);
+
 Label {
   Style: (...@MyBaseStyle, FontSize: 36);
 }
 ```
 
-Multiple named expressions can be layered together.
-
----
-
-# Document References
-
-Other UI documents can be referenced with `$`.
+Multiple named expressions can be layered:
 
 ```ui
+@TitleStyle = LabelStyle(FontSize: 24, HorizontalAlignment: Center);
+@SpacedTextStyle = LabelStyle(LetterSpacing: 2);
+
+Label {
+  Style: (...@TitleStyle, ...@SpacedTextStyle);
+}
+```
+
+### Document References
+
+A document can reference another document and access its named expressions:
+
+```ui
+// Document references are defined with $ prefix
 $Common = "../Common.ui";
+
 TextButton {
   Style: $Common.@DefaultButtonStyle;
 }
 ```
 
-This is how shared documents like `Common.ui` expose reusable styles and components.
-
 ---
 
-# Templates
+## Templates
 
-Reusable UI fragments can be declared as named expressions and instantiated multiple times.
+Declare a reusable UI fragment as a named expression and instantiate it multiple times with customization:
 
 ```ui
+// Template declaration
 @Row = Group {
   Anchor: (Height: 50);
   Label #Label { Anchor: (Left: 0, Width: 100); Text: @LabelText; }
   Group #Content { Anchor: (Left: 100); }
 };
+
+// Using the template twice
+Group #Rows {
+  LayoutMode: TopScrolling;
+
+  @Row #MyFirstRow {
+    @LabelText = "First row";
+    #Content { TextInput {} }
+  }
+
+  @Row #MySecondRow {
+    @LabelText = "Second row";
+  }
+}
 ```
 
-When instantiating a template, you can:
-
-- override local named expressions
-- inject additional children into template nodes
-
-Rule:
-
-- local named expressions must be declared at the top of the block before properties or children
+You can override local named expressions and insert additional children at any point in the template tree. Local named expressions must be defined at the very top of the block, before properties and child elements.
 
 ---
 
-# Property Types
+## Property Types
 
-Common markup value types include:
+### Basic Types
 
-- `Boolean`
-- `Int`
-- `Float`, `Double`, `Decimal`
-- `String`
-- `Char`
-- `Color`
-- objects
-- arrays
+- **Boolean** — `Visible: false;`
+- **Int** — `Height: 20;`
+- **Float, Double, Decimal** — `Min: 0.2;`
+- **String** — `Text: "Hi!";`
+- **Char** — `PasswordChar: "*";` *(cannot contain more than one character)*
+- **Color** — `Background: #ffffff;`
+- **Objects** — `Style: (Background: #ffffff)`
+- **Array** — `TextSpans: [(Text: "Hi", IsBold: true)]`
 
-Translations can be referenced anywhere a string is accepted:
+### Translations
+
+Translation keys can be referenced anywhere a string is accepted:
 
 ```ui
 Label {
@@ -140,21 +146,11 @@ Label {
 }
 ```
 
----
+### Colors
 
-# Colors
-
-Supported color literals:
-
-- `#rrggbb`
-- `#rrggbb(a.a)`
-- `#rrggbbaa`
-
-Preferred format:
-
-- `#rrggbb(a.a)` for readability
-
-Example:
+- `#rrggbb` — 6-digit hex, fully opaque
+- `#rrggbb(a.a)` — 6-digit hex with alpha between 0 and 1 *(preferred for readability)*
+- `#rrggbbaa` — 8-digit hex with alpha
 
 ```ui
 Group {
@@ -162,11 +158,9 @@ Group {
 }
 ```
 
----
+### Font Name
 
-# Fonts
-
-Font names can be referenced directly by string ID.
+Font names are referenced by their string ID. Strings are automatically converted to `UIFontName`:
 
 ```ui
 Label {
@@ -175,31 +169,33 @@ Label {
 }
 ```
 
-Available documented names:
+**Available Font Names:**
 
-- `Default`
-- `Secondary`
-- `Mono`
+| Name | Use |
+|---|---|
+| `Default` | Standard text, always used unless overridden |
+| `Secondary` | Headlines or standout elements |
+| `Mono` | Development only (profiling, error overlays) |
 
----
+### Path
 
-# Paths
+Paths reference other UI assets. They are always relative to the file where they are declared. Strings are automatically converted to `UIPath`.
 
-UI asset paths are relative to the file where they are declared.
+```ui
+Path: "Test.png"
+```
 
 Examples:
 
-- `"MyButton.png"`
-- `"../MyButton.png"`
-- `"../../MyButton.png"`
+| UIPath | .ui File | Resulting Path |
+|---|---|---|
+| `MyButton.png` | `Menu/MyAwesomeMenu.ui` | `Menu/MyButton.png` |
+| `../MyButton.png` | `Menu/MyAwesomeMenu.ui` | `MyButton.png` |
+| `../../MyButton.png` | `Menu/Popup/Templates/MyAwesomeMenu.ui` | `Menu/MyButton.png` |
 
-Use relative traversal when referencing assets from nested UI folders.
+### Objects
 
----
-
-# Objects
-
-Object properties use grouped field syntax.
+Objects contain a set of properties:
 
 ```ui
 Group {
@@ -210,18 +206,9 @@ Group {
 }
 ```
 
-This is used throughout markup for style objects, anchors, and other compound values.
-
 ---
 
-# Tooling Note
+## Visual Studio Code Extension
 
-There is an official Visual Studio Code extension for `.ui` syntax highlighting.
-
----
-
-# Beanz Core Relevance
-
-- Use named expressions and templates to keep `/beanz` UI reusable
-- Use `$Common` references for shared styles instead of duplicating visual config
-- Keep UI assets modular so Java code only binds data and events
+There is an official extension for Visual Studio Code which adds syntax highlighting for `.ui` files:  
+https://marketplace.visualstudio.com/items?itemName=HypixelStudiosCanadaInc.vscode-hytaleui

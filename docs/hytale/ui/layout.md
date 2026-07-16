@@ -1,32 +1,45 @@
-# Hytale UI Layout
+# Layout
 
-> Source: Official Hytale Documentation  
-> Cleaned for internal dev use
-
----
-
-# Layout Fundamentals
-
-The layout system controls how UI elements are sized and positioned.
-
-Every element has:
-
-- a container rectangle from its parent
-- an anchor that positions or sizes it
-- padding that affects child layout
-- a `LayoutMode` if it is arranging children
-
-Core flow:
-
-`Parent container -> Anchor -> Padding -> Child content/layout`
+> Source: Official Hytale Documentation — Hypixel Studios Canada Inc.  
+> https://github.com/HytaleModding/site/tree/main/content/docs/en/official-documentation/custom-ui
 
 ---
 
-# Anchor
+## Layout Fundamentals
 
-`Anchor` controls how an element fits inside its parent container.
+The layout system determines how UI elements are positioned and sized on screen.
 
-## Fixed Size
+Every UI element has:
+
+- **Container Rectangle** — the space allocated by the parent
+- **Anchor** — how the element positions/sizes itself within the container
+- **Padding** — inner spacing that affects child layout
+- **LayoutMode** — how the element arranges its children (if it's a container)
+
+```
+┌────────────────────────────────────────────────┐
+│  Container Rectangle (from parent)             │
+│                                                │
+│  ┌──────────────────────────────┐              │
+│  │ Anchored Rectangle           │              │
+│  │                              │              │
+│  │ ┌────────────────────────┐   │              │
+│  │ │ Padding                │   │              │
+│  │ │ ┌────────────────────┐ │   │              │
+│  │ │ │ Content Area       │ │   │              │
+│  │ │ └────────────────────┘ │   │              │
+│  │ └────────────────────────┘   │              │
+│  └──────────────────────────────┘              │
+└────────────────────────────────────────────────┘
+```
+
+---
+
+## Anchor
+
+`Anchor` controls how an element positions and sizes itself within its container rectangle.
+
+### Fixed Size
 
 ```ui
 Button {
@@ -34,9 +47,9 @@ Button {
 }
 ```
 
-Creates a fixed `200 x 40` element.
+Creates a 200×40 pixel button.
 
-## Positioning
+### Positioning
 
 ```ui
 Label {
@@ -44,9 +57,12 @@ Label {
 }
 ```
 
-Uses edge offsets plus explicit size.
+- **Top**: 10 pixels from container's top edge
+- **Left**: 20 pixels from container's left edge
+- **Width**: 100 pixels wide
+- **Height**: 30 pixels tall
 
-## Edge Anchoring
+### Anchoring to Edges
 
 ```ui
 Button {
@@ -54,25 +70,24 @@ Button {
 }
 ```
 
-Pins the element to container edges.
+Anchors the button to the bottom-right corner, 10 pixels from each edge.
 
-## Stretching
+### Stretching
 
 ```ui
 Group {
     Anchor: (Top: 0, Bottom: 0, Left: 0, Right: 0);
 }
-```
 
-Shorthand:
-
-```ui
+// Shorthand:
 Group {
     Anchor: (Full: 0);
 }
 ```
 
-## Mixed Anchoring
+Stretches to fill the entire container.
+
+### Mixed Anchoring
 
 ```ui
 Panel {
@@ -80,15 +95,18 @@ Panel {
 }
 ```
 
-Supports fixed size on one axis and stretch on the other.
+- Fixed width of 300 pixels
+- Stretches vertically between top and bottom edges
+- 10 pixels from top and bottom
+- 20 pixels from left
 
 ---
 
-# Padding
+## Padding
 
-`Padding` adds inner spacing and changes where children can render.
+`Padding` creates inner spacing, affecting where children are positioned.
 
-## Uniform Padding
+### Uniform Padding
 
 ```ui
 Group {
@@ -96,7 +114,7 @@ Group {
 }
 ```
 
-## Directional Padding
+### Directional Padding
 
 ```ui
 Group {
@@ -104,93 +122,207 @@ Group {
 }
 ```
 
-## Shorthand
+### Shorthand
 
 ```ui
 Group {
     Padding: (Horizontal: 20, Vertical: 10);
 }
+// Equivalent to: Top: 10, Bottom: 10, Left: 20, Right: 20
 ```
 
-## Effect On Children
+### Effect on Children
 
-If a child fills the parent, padding still reduces the actual content area available to that child.
+```ui
+Group {
+    Anchor: (Width: 200, Height: 100);
+    Padding: (Full: 10);
+
+    Label {
+        Anchor: (Full: 0);
+    }
+}
+```
+
+The label fills the group, but there's a 10-pixel gap on all sides due to padding.
 
 ---
 
-# LayoutMode
+## LayoutMode
 
 `LayoutMode` determines how a container arranges its children.
 
-## Stack Modes
+### Top (Vertical Stack)
 
-- `Top`
-  - vertical stack from top
-- `Bottom`
-  - vertical stack aligned to bottom
-- `Left`
-  - horizontal stack from left
-- `Right`
-  - horizontal stack aligned to right
+```ui
+Group {
+    LayoutMode: Top;
 
-Spacing comes from child anchor offsets such as `Bottom` or `Right`.
+    Button { Anchor: (Height: 30); }
+    Button { Anchor: (Height: 30); }
+    Button { Anchor: (Height: 30); }
+}
+```
 
-## Centering Modes
+Children stack vertically top-to-bottom. Use a child's `Anchor.Bottom` to add spacing after it.
 
-- `Center`
-  - centers children horizontally
-- `Middle`
-  - centers children vertically
-- `CenterMiddle`
-  - horizontal stack centered both ways
-- `MiddleCenter`
-  - vertical stack centered both ways
+### Bottom (Vertical Stack, Bottom-Aligned)
 
-## Absolute Layout
+Same as `Top` but aligned to the bottom edge of the parent.
 
-- `Full`
-  - children use their own anchors directly
-  - useful for absolute positioning
+### Left (Horizontal Stack)
 
-## Scrolling Layouts
+```ui
+Group {
+    LayoutMode: Left;
 
-- `TopScrolling`
-- `BottomScrolling`
-- `LeftScrolling`
-- `RightScrolling`
+    Button { Anchor: (Width: 80); }
+    Button { Anchor: (Width: 80); }
+    Button { Anchor: (Width: 80); }
+}
+```
 
-These behave like their base layout modes but add scrollbars when content exceeds bounds.
+Children arrange horizontally left-to-right. Use `Anchor.Right` for spacing between elements.
 
-## Wrapping Layout
+### Right (Horizontal Stack, Right-Aligned)
 
-- `LeftCenterWrap`
-  - flows left to right
-  - wraps to new rows when space runs out
-  - centers each row horizontally
+Same as `Left` but aligned to the right side of the parent.
+
+### Center
+
+Centers children horizontally within the parent.
+
+### Middle
+
+Centers children vertically within the parent.
+
+### CenterMiddle (Horizontal Stack, Fully Centered)
+
+```ui
+Group {
+    LayoutMode: CenterMiddle;
+
+    Button { Anchor: (Width: 80); }
+    Button { Anchor: (Width: 80); }
+    Button { Anchor: (Width: 80); }
+}
+```
+
+Children stack horizontally, centered both horizontally and vertically:
+
+```
+┌──────────────────────────────────────────┐
+│                                          │
+│     ┌──────────┬──────────┬──────────┐   │
+│     │ B1       │ B2       │ B3       │   │
+│     └──────────┴──────────┴──────────┘   │
+│                                          │
+└──────────────────────────────────────────┘
+```
+
+### MiddleCenter (Vertical Stack, Fully Centered)
+
+```ui
+Group {
+    LayoutMode: MiddleCenter;
+
+    Button { Anchor: (Height: 30); }
+    Button { Anchor: (Height: 30); }
+    Button { Anchor: (Height: 30); }
+}
+```
+
+Children stack vertically, centered both horizontally and vertically.
+
+### Full (Absolute Positioning)
+
+```ui
+Group {
+    LayoutMode: Full;
+
+    Label {
+        Anchor: (Top: 20, Left: 20, Width: 100, Height: 30);
+    }
+}
+```
+
+Children use absolute positioning via their own `Anchor` properties.
+
+### TopScrolling / BottomScrolling
+
+Like `Top`/`Bottom`, but adds a scrollbar if content exceeds the container height:
+
+```ui
+Group {
+    LayoutMode: TopScrolling;
+    ScrollbarStyle: $Common.@DefaultScrollbar;
+
+    // ... many children
+}
+```
+
+### LeftScrolling / RightScrolling
+
+Like `Left`/`Right`, but adds a horizontal scrollbar.
+
+### LeftCenterWrap (Wrapping Horizontal Stack)
+
+```ui
+Group {
+    LayoutMode: LeftCenterWrap;
+
+    Button { Anchor: (Width: 80, Height: 30); }
+    Button { Anchor: (Width: 80, Height: 30); }
+    // ...
+}
+```
+
+Children flow left-to-right. When there's no more horizontal space, they wrap to the next row. Each row is horizontally centered:
+
+```
+┌──────────────────────────────────────────┐
+│      ┌──────────┬──────────┬──────────┐  │
+│      │ B1       │ B2       │ B3       │  │
+│      └──────────┴──────────┴──────────┘  │
+│           ┌──────────┬──────────┐        │
+│           │ B4       │ B5       │        │
+│           └──────────┴──────────┘        │
+└──────────────────────────────────────────┘
+```
 
 ---
 
-# FlexWeight
+## FlexWeight
 
-`FlexWeight` distributes remaining space between children.
+`FlexWeight` distributes remaining space among children proportionally.
+
+```ui
+Group {
+    LayoutMode: Left;
+    Anchor: (Width: 400);
+
+    Button { Anchor: (Width: 100); }
+    Group  { FlexWeight: 1; }      // Takes all remaining space (200px)
+    Button { Anchor: (Width: 100); }
+}
+```
+
+### Multiple FlexWeights
 
 ```ui
 Group {
     LayoutMode: Left;
     Anchor: (Width: 600);
-    Group { FlexWeight: 1; }
-    Group { FlexWeight: 2; }
-    Group { FlexWeight: 1; }
+
+    Group { FlexWeight: 1; }  // 150px  (1/4)
+    Group { FlexWeight: 2; }  // 300px  (2/4)
+    Group { FlexWeight: 1; }  // 150px  (1/4)
 }
 ```
 
-In that case the remaining width is split proportionally `1 : 2 : 1`.
-
-Use this when part of a row or column should expand while others remain fixed.
-
 ---
 
-# Visibility
+## Visibility
 
 ```ui
 Button #HiddenButton {
@@ -200,23 +332,5 @@ Button #HiddenButton {
 
 When hidden:
 
-- the element is not displayed
-- its children are not displayed
-- it does not take up layout space
-
----
-
-# Practical Use
-
-- Use `Anchor` for element placement and sizing rules
-- Use `Padding` to control inner spacing cleanly
-- Use `LayoutMode` to choose stack, center, scroll, or wrap behavior
-- Use `FlexWeight` to fill remaining space without hardcoding every width
-
----
-
-# Beanz Core Relevance
-
-- Use stack and centering modes for `/beanz` menu composition
-- Use `Full` only when exact manual positioning is necessary
-- Prefer padding and layout modes over fragile absolute offsets for scalable UI screens
+- Element and its children are not displayed
+- Element **does not take up layout space**

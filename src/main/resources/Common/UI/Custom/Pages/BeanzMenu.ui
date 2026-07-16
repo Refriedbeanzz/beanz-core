@@ -6,7 +6,7 @@ Group {
 
   Group #Panel {
     Background: (Color: #0d1320f1);
-    Anchor: (Top: 64, Left: 110, Width: 640, Height: 430);
+    Anchor: (Top: 44, Left: 110, Width: 640, Height: 530);
 
     Label #Title {
       Text: "BeanzSkillz";
@@ -22,58 +22,103 @@ Group {
 
     Group #SkillsFrame {
       Background: (Color: #152235f0);
-      Anchor: (Top: 136, Left: 38, Width: 564, Height: 184);
+      Anchor: (Top: 126, Left: 38, Width: 564, Height: 300);
     }
 
     Label #SkillsHeader {
       Text: "Skills";
       Style: (FontSize: 14, TextColor: #7f91ac);
-      Anchor: (Top: 150, Left: 56, Width: 120, Height: 18);
+      Anchor: (Top: 140, Left: 56, Width: 120, Height: 18);
     }
 
-    Group #SkillEntryCard {
+    // ── Jump ──────────────────────────────────────────────────────────────
+
+    Group #JumpEntryCard {
       Background: (Color: #1a2b44f2);
-      Anchor: (Top: 184, Left: 56, Width: 528, Height: 126);
+      Anchor: (Top: 168, Left: 56, Width: 528, Height: 116);
     }
 
-    Label #SkillEntryName {
+    Label #JumpEntryName {
       Text: "Jump";
       Style: (FontSize: 19, TextColor: #f4f0d7);
-      Anchor: (Top: 198, Left: 76, Width: 220, Height: 22);
+      Anchor: (Top: 180, Left: 76, Width: 220, Height: 22);
     }
 
-    Label #SkillEntryLevel {
+    Label #JumpEntryLevel {
       Text: "Lvl 1";
       Style: (FontSize: 18, TextColor: #8dd1ff);
-      Anchor: (Top: 198, Left: 452, Width: 110, Height: 22);
+      Anchor: (Top: 180, Left: 452, Width: 110, Height: 22);
     }
 
-    Label #SkillEntryXp {
+    Label #JumpEntryXp {
       Text: "Total XP: 0";
       Style: (FontSize: 14, TextColor: #aebdce);
-      Anchor: (Top: 228, Left: 76, Width: 240, Height: 18);
+      Anchor: (Top: 210, Left: 76, Width: 240, Height: 18);
     }
 
-    Group #SkillEntryProgressBar {
+    Group #JumpEntryProgressBar {
       Background: (Color: #0b1220ff);
-      Anchor: (Top: 256, Left: 76, Width: 388, Height: 12);
+      Anchor: (Top: 236, Left: 76, Width: 388, Height: 12);
 
-      Group #SkillEntryFill {
+      Group #JumpEntryFill {
         Background: (Color: #48b7ff);
         Anchor: (Top: 0, Left: 0, Width: 0, Height: 12);
       }
     }
 
-    Label #SkillEntryProgressText {
+    Label #JumpEntryProgressText {
       Text: "0 / 10 XP to Level 2";
       Style: (FontSize: 13, TextColor: #dbe8f7);
-      Anchor: (Top: 276, Left: 76, Width: 320, Height: 18);
+      Anchor: (Top: 256, Left: 76, Width: 320, Height: 18);
     }
 
+    // ── Running ───────────────────────────────────────────────────────────
+
+    Group #RunningEntryCard {
+      Background: (Color: #1a2b44f2);
+      Anchor: (Top: 292, Left: 56, Width: 528, Height: 116);
+    }
+
+    Label #RunningEntryName {
+      Text: "Running";
+      Style: (FontSize: 19, TextColor: #f4f0d7);
+      Anchor: (Top: 304, Left: 76, Width: 220, Height: 22);
+    }
+
+    Label #RunningEntryLevel {
+      Text: "Lvl 1";
+      Style: (FontSize: 18, TextColor: #a0ffb0);
+      Anchor: (Top: 304, Left: 452, Width: 110, Height: 22);
+    }
+
+    Label #RunningEntryXp {
+      Text: "Total XP: 0";
+      Style: (FontSize: 14, TextColor: #aebdce);
+      Anchor: (Top: 334, Left: 76, Width: 240, Height: 18);
+    }
+
+    Group #RunningEntryProgressBar {
+      Background: (Color: #0b1220ff);
+      Anchor: (Top: 360, Left: 76, Width: 388, Height: 12);
+
+      Group #RunningEntryFill {
+        Background: (Color: #4cff88);
+        Anchor: (Top: 0, Left: 0, Width: 0, Height: 12);
+      }
+    }
+
+    Label #RunningEntryProgressText {
+      Text: "0 / 10 XP to Level 2";
+      Style: (FontSize: 13, TextColor: #dbe8f7);
+      Anchor: (Top: 380, Left: 76, Width: 320, Height: 18);
+    }
+
+    // ── Footer ────────────────────────────────────────────────────────────
+
     Label #Footer {
-      Text: "Jump levels steadily improve mobility. Higher levels also cut down incoming fall damage.";
+      Text: "Skills level up as you play. Each level unlocks better stats and new abilities.";
       Style: (FontSize: 13, TextColor: #9fb1c7, HorizontalAlignment: Center, Wrap: true);
-      Anchor: (Top: 342, Left: 40, Right: 40, Height: 42);
+      Anchor: (Top: 450, Left: 40, Right: 40, Height: 42);
     }
   }
 }

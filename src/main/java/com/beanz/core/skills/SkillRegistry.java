@@ -9,6 +9,7 @@ public final class SkillRegistry {
 
     static {
         register(new SkillDefinition(SkillType.JUMP, "Jump"));
+        register(new SkillDefinition(SkillType.RUNNING, "Running"));
     }
 
     private SkillRegistry() {

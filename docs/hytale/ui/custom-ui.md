@@ -1,151 +1,126 @@
-# Hytale Custom UI
+# Custom UI
 
-> Source: Official Hytale Documentation  
-> Cleaned for internal dev use
-
----
-
-# What Custom UI Is
-
-Custom UI is Hytale's server-controlled framework for building custom user interfaces.
-
-- Built through Java plugins and asset packs
-- Separate from built-in client UI
-- Supports:
-  - interactive pages
-  - HUD overlays
-  - server-driven updates
-
-Built-in client UI is not moddable.
+> Source: Official Hytale Documentation — Hypixel Studios Canada Inc.  
+> https://github.com/HytaleModding/site/tree/main/content/docs/en/official-documentation/custom-ui
 
 ---
 
-# UI Categories
+## What is Custom UI?
 
-## Client UI (Not Moddable)
+Custom UI is Hytale's framework for creating **custom user interfaces** controlled by the game server. Unlike the built-in Client UI (which is part of the game client and cannot be modified), Server UI allows you to create interactive screens and HUD overlays through Java plugins and asset packs.
 
-Built into the C# game client.
+As a modder, Custom UI gives you the power to:
 
-- main menu
-- settings
-- built-in HUD
-- inventory and crafting
-- development tools
-
-These cannot be modified by server mods.
-
-## In-Game UI (Moddable via Server)
-
-Server-controlled UI that can be created and updated by plugins.
-
-### Custom Pages
-
-Full-screen interactive overlays used during gameplay.
-
-- can be dismissed with `ESC`
-- capture keyboard and mouse input
-- support loading states
-- useful for:
-  - shops
-  - dialogs
-  - menus
-  - configuration screens
-
-### Custom HUDs
-
-Persistent display-only overlays drawn over gameplay.
-
-- no user interaction
-- always visible during gameplay
-- lightweight and non-intrusive
-- useful for:
-  - quest trackers
-  - status displays
-  - custom server info
+- **Create custom interactive pages** — shop interfaces, quest dialogs, server settings menus, admin panels
+- **Add custom HUD overlays** — quest trackers, status displays, custom health bars, server information
+- **Design with markup** — use `.ui` files to define reusable UI templates
+- **Handle user interactions** — respond to button clicks, form submissions, and other events
+- **Localize your UI** — support multiple languages using the game's translation system
 
 ---
 
-# Architecture Overview
+## How Custom UI Fits Into Hytale's UI
 
-Custom UI uses a command-based server/client architecture.
+Hytale's user interface is divided into two main categories:
 
-Flow:
+### Client UI (Not Moddable)
 
-1. Java code builds UI commands with `UICommandBuilder`
-2. Commands are sent to the client
-3. Client parses `.ui` assets and builds the element tree
+Built-in interfaces controlled by the C# game client:
+
+- Main menu and settings
+- Character creation
+- Built-in HUD (health, hotbar, chat)
+- Inventory and crafting screens
+- Development tools
+
+**You cannot modify these** — they are part of the core game client.
+
+### In-Game UI (Moddable via Server)
+
+Server-controlled interfaces that you can create and customize:
+
+#### Custom Pages
+
+Full-screen interactive overlays that appear during gameplay:
+
+- Can be dismissed by the player (ESC key)
+- Capture all input (keyboard and mouse)
+- Support loading states while waiting for server responses
+- Perfect for: shops, dialogs, menus, configuration screens
+
+#### Custom HUDs
+
+Persistent overlay elements drawn on top of the game world:
+
+- Display-only (no user interaction)
+- Always visible during gameplay
+- Lightweight and non-intrusive
+- Perfect for: quest objectives, status indicators, server info panels
+
+---
+
+## Architecture Overview
+
+Server UI uses a **command-based architecture**:
+
+```
+┌─────────────────────┐         ┌──────────────────────┐
+│   Java Server       │         │    C# Client         │
+│   (Your Plugin)     │         │    (Game)            │
+├─────────────────────┤         ├──────────────────────┤
+│                     │         │                      │
+│ InteractiveCustomUI │         │   CustomPage or      │
+│ Page                │         │   CustomHud          │
+│   ↓ build()         ├────────→│     ↓ Apply          │
+│ UICommandBuilder    │         │   Element Tree       │
+│   - append()        │         │     ↓ Layout         │
+│   - set()           │         │   Rendered UI        │
+│   - clear()         │         │                      │
+│                     │         │                      │
+│ ↓ handleDataEvent() │← Events │   User Interaction   │
+│   Process input     │         │   (click, type, etc) │
+│   sendUpdate()      │         │                      │
+└─────────────────────┘         └──────────────────────┘
+```
+
+**The flow:**
+
+1. Your Java code builds UI using `UICommandBuilder`
+2. Commands are sent to the client as data
+3. Client parses `.ui` markup files and creates visual elements
 4. User interacts with the UI
-5. Events are sent back to Java
-6. Server code processes the event and sends updates back
-
-Key server-side pieces:
-
-- `InteractiveCustomUIPage`
-- `UICommandBuilder`
-- `handleDataEvent()`
+5. Events are sent back to your Java code
+6. You process events and send updates back
 
 ---
 
-# Key Principles
+## Key Principles
 
-## Declarative
+### Declarative, Not Imperative
 
-UI is described through commands, not direct object creation.
+You don't create UI objects directly. Instead, you send **commands** that describe what you want:
 
-Examples:
+- "Append this button template to that container"
+- "Set this label's text to 'Hello World'"
+- "Clear all children from this list"
 
-- append an element
-- set a property
-- clear children
+### Asset-Driven
 
-## Asset-Driven
+UI structure is defined in `.ui` markup files (assets), not hardcoded in Java. This enables:
 
-UI structure lives in `.ui` markup assets instead of hardcoded Java layout.
+- Designers to modify layouts without touching code
+- Reusable UI components
+- Consistent visual language
 
-Benefits:
+### Event-Driven
 
-- reusable templates
-- designer-friendly iteration
-- consistent visual structure
+User interactions trigger events that flow back to your server code. You register event bindings and handle them in `handleDataEvent()`.
 
-## Event-Driven
+### Selector-Based
 
-User input returns to server code through registered events.
+You target specific UI elements using **selectors:**
 
-- button clicks
-- form submission
-- other UI interactions
-
-## Selector-Based
-
-Specific UI elements are targeted by selectors.
-
-Examples:
-
-- `#MyButton`
-- `#List[0]`
-- `#List[0] #Title`
-- `#Label.TextColor`
-
----
-
-# Practical Modding Use
-
-Custom UI is suited for:
-
-- shop interfaces
-- quest dialogs
-- admin panels
-- settings menus
-- quest HUDs
-- status indicators
-
-Localization is supported through the game's translation system.
-
----
-
-# Beanz Core Relevance
-
-- Use custom pages for interactive server menus
-- Use custom HUDs for lightweight jump/skill/status overlays
-- Keep layout in `.ui` assets and use Java only for data binding and event handling
+- `#MyButton` — element with ID "MyButton"
+- `#List[0]` — first child of element "List"
+- `#List[0] #Title` — element with ID "Title" inside the first child of "List"
+- `#Label.TextColor` — the TextColor property of element "Label"

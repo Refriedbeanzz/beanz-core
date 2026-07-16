@@ -1,0 +1,31 @@
+{
+  "TranslationProperties": {
+    "Name": "Beanz Overdrive",
+    "Description": "Press Ability3 to activate a 10-second sprint burst. Requires Running level 50."
+  },
+  "Icon": "Icons/ItemsGenerated/Recipe_Page.png",
+  "Categories": [
+    "Items.Recipes"
+  ],
+  "PlayerAnimationsId": "Item",
+  "Quality": "Rare",
+  "MaxStack": 1,
+  "Model": "Items/Consumables/Recipes/Recipe.blockymodel",
+  "Texture": "Items/Consumables/Recipes/Recipe_Texture.png",
+  "Utility": {
+    "Usable": true,
+    "Compatible": true
+  },
+  "IconProperties": {
+    "Scale": 0.76,
+    "Rotation": [135, 135, 0],
+    "Translation": [-1, 5]
+  },
+  "Interactions": {
+    "Ability3": "Root_BeanzOverdrive"
+  },
+  "Tags": {
+    "Type": ["Consumable"],
+    "Family": ["BeanzAbility"]
+  }
+}

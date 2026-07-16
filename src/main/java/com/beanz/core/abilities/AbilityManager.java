@@ -2,6 +2,7 @@ package com.beanz.core.abilities;
 
 import com.beanz.core.skills.JumpAbilityStateComponent;
 import com.beanz.core.skills.PlayerSkillsComponent;
+import com.beanz.core.skills.RunningAbilityStateComponent;
 import com.beanz.core.skills.SkillRewardService;
 import com.beanz.core.skills.SkillType;
 import com.hypixel.hytale.component.Holder;
@@ -114,27 +115,27 @@ public class AbilityManager {
             return false;
         }
 
-        Holder<EntityStore> holder = playerRef.getHolder();
-        if (holder == null) {
-            LOGGER.atInfo().log(
-                "[BeanzCore][AbilityDebug] SKY_LEAP holder lookup: player=%s, entityRef=%s, holder=%s, lookupPath=%s",
-                playerRef.getUsername(),
-                "n/a",
-                "null",
-                "playerRef.getHolder()"
-            );
-            LOGGER.atWarning().log("[BeanzCore][Ability] SKY_LEAP blocked: holder missing for %s", playerRef.getUsername());
+        @SuppressWarnings("unchecked")
+        Ref<EntityStore> entityRef = (Ref<EntityStore>) playerRef.getReference();
+        if (entityRef == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] SKY_LEAP blocked: ref missing for %s", playerRef.getUsername());
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        Store<EntityStore> entityStore = (Store<EntityStore>) entityRef.getStore();
+        if (entityStore == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] SKY_LEAP blocked: store missing for %s", playerRef.getUsername());
             return false;
         }
 
-        Player player = holder.getComponent(Player.getComponentType());
-        PlayerSkillsComponent skills = getOrCreateSkills(playerRef, holder);
-        PlayerAbilityData abilityData = getOrCreate(playerRef, holder);
-        JumpAbilityStateComponent jumpState = getOrCreateJumpState(holder);
-        MovementStatesComponent movementStates = holder.getComponent(MovementStatesComponent.getComponentType());
-        MovementManager movementManager = holder.getComponent(MovementManager.getComponentType());
-        EntityStatMap statMap = holder.getComponent(EntityStatMap.getComponentType());
-        Velocity velocity = holder.getComponent(Velocity.getComponentType());
+        Player player = entityStore.getComponent(entityRef, Player.getComponentType());
+        PlayerSkillsComponent skills = com.beanz.core.BeanzCoreMod.getInstance().getOrCreateSkills(playerRef, entityStore, entityRef);
+        PlayerAbilityData abilityData = getOrCreate(playerRef, entityStore, entityRef);
+        JumpAbilityStateComponent jumpState = getOrCreateJumpState(entityStore, entityRef);
+        MovementStatesComponent movementStates = entityStore.getComponent(entityRef, MovementStatesComponent.getComponentType());
+        MovementManager movementManager = entityStore.getComponent(entityRef, MovementManager.getComponentType());
+        EntityStatMap statMap = entityStore.getComponent(entityRef, EntityStatMap.getComponentType());
+        Velocity velocity = entityStore.getComponent(entityRef, Velocity.getComponentType());
 
         return useSkyLeap(
             playerRef,
@@ -285,15 +286,72 @@ public class AbilityManager {
         return true;
     }
 
-    private PlayerSkillsComponent getOrCreateSkills(PlayerRef playerRef, Holder<EntityStore> holder) {
-        return com.beanz.core.BeanzCoreMod.getInstance().getOrCreateSkills(playerRef, holder);
+    public boolean useOverdrive(PlayerRef playerRef) {
+        if (playerRef == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] OVERDRIVE blocked: player ref was null");
+            return false;
+        }
+
+        @SuppressWarnings("unchecked")
+        Ref<EntityStore> entityRef = (Ref<EntityStore>) playerRef.getReference();
+        if (entityRef == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] OVERDRIVE blocked: ref missing for %s", playerRef.getUsername());
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        Store<EntityStore> entityStore = (Store<EntityStore>) entityRef.getStore();
+        if (entityStore == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] OVERDRIVE blocked: store missing for %s", playerRef.getUsername());
+            return false;
+        }
+
+        Player player = entityStore.getComponent(entityRef, Player.getComponentType());
+        PlayerAbilityData abilityData = getOrCreate(playerRef, entityStore, entityRef);
+        RunningAbilityStateComponent runState = entityStore.getComponent(entityRef, RunningAbilityStateComponent.getComponentType());
+
+        if (abilityData == null || runState == null) {
+            LOGGER.atWarning().log("[BeanzCore][Ability] OVERDRIVE blocked: missing components for %s", playerRef.getUsername());
+            return false;
+        }
+
+        if (!isUnlocked(abilityData, AbilityType.OVERDRIVE)) {
+            LOGGER.atInfo().log("[BeanzCore][Ability] OVERDRIVE blocked: locked for %s", playerRef.getUsername());
+            return false;
+        }
+
+        long now = System.currentTimeMillis();
+        if (!canUse(abilityData, AbilityType.OVERDRIVE, now)) {
+            LOGGER.atInfo().log("[BeanzCore][Ability] OVERDRIVE blocked: cooldown for %s", playerRef.getUsername());
+            return false;
+        }
+
+        SkillRewardService rewardService = com.beanz.core.BeanzCoreMod.getInstance().getSkillService().getRewardService();
+        long durationMs = rewardService.getOverdriveDurationMs();
+        runState.activateOverdrive(now, durationMs);
+        markUsed(abilityData, AbilityType.OVERDRIVE, now);
+
+        LOGGER.atInfo().log(
+            "[BeanzCore][Ability] OVERDRIVE activated for %s (duration=%sms)",
+            playerRef.getUsername(),
+            durationMs
+        );
+
+        PacketHandler packetHandler = player != null ? player.getPlayerConnection() : null;
+        if (packetHandler != null) {
+            NotificationUtil.sendNotification(
+                packetHandler,
+                Message.raw("OVERDRIVE activated").color("#ff9f1c").bold(true),
+                Message.raw("Sprint speed boosted for 10 seconds!").color("#ffe0a0")
+            );
+        }
+        return true;
     }
 
-    private JumpAbilityStateComponent getOrCreateJumpState(Holder<EntityStore> holder) {
-        JumpAbilityStateComponent jumpState = holder.getComponent(JumpAbilityStateComponent.getComponentType());
+    private JumpAbilityStateComponent getOrCreateJumpState(Store<EntityStore> store, Ref<EntityStore> ref) {
+        JumpAbilityStateComponent jumpState = store.getComponent(ref, JumpAbilityStateComponent.getComponentType());
         if (jumpState == null) {
             jumpState = new JumpAbilityStateComponent();
-            holder.addComponent(JumpAbilityStateComponent.getComponentType(), jumpState);
+            store.addComponent(ref, JumpAbilityStateComponent.getComponentType(), jumpState);
         }
         return jumpState;
     }

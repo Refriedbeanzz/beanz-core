@@ -1,6 +1,7 @@
 package com.beanz.core;
 
 import com.beanz.core.ui.BeanzMenuViewData;
+import com.beanz.core.ui.SkillOverviewEntryViewData;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.BasicCustomUIPage;
@@ -22,20 +23,24 @@ public class BeanzMenuPage extends BasicCustomUIPage {
         commandBuilder.append(PAGE_LAYOUT);
         commandBuilder.set("#Title.Text", viewData.title());
         commandBuilder.set("#Body.Text", viewData.body());
-        commandBuilder.set("#SkillEntryName.Text", viewData.primarySkill().skillName());
-        commandBuilder.set("#SkillEntryLevel.Text", viewData.primarySkill().levelText());
-        commandBuilder.set("#SkillEntryXp.Text", viewData.primarySkill().xpSummaryText());
-        commandBuilder.set("#SkillEntryProgressText.Text", viewData.primarySkill().progressText());
-        commandBuilder.setObject("#SkillEntryFill.Anchor", progressFillAnchor(viewData.primarySkill().progressWidth()));
         commandBuilder.set("#Footer.Text", viewData.footer());
 
+        setSkillEntry(commandBuilder, "Jump", viewData.jumpSkill());
+        setSkillEntry(commandBuilder, "Running", viewData.runningSkill());
+
         LOGGER.atInfo().log(
-            "Assigned BeanzMenu overview values: skill=%s, level=%s, xp=%s, progressWidth=%s",
-            viewData.primarySkill().skillName(),
-            viewData.primarySkill().levelText(),
-            viewData.primarySkill().xpSummaryText(),
-            viewData.primarySkill().progressWidth()
+            "Built BeanzMenu: jump=Lvl %s, running=Lvl %s",
+            viewData.jumpSkill().levelText(),
+            viewData.runningSkill().levelText()
         );
+    }
+
+    private void setSkillEntry(UICommandBuilder commandBuilder, String prefix, SkillOverviewEntryViewData entry) {
+        commandBuilder.set("#" + prefix + "EntryName.Text", entry.skillName());
+        commandBuilder.set("#" + prefix + "EntryLevel.Text", entry.levelText());
+        commandBuilder.set("#" + prefix + "EntryXp.Text", entry.xpSummaryText());
+        commandBuilder.set("#" + prefix + "EntryProgressText.Text", entry.progressText());
+        commandBuilder.setObject("#" + prefix + "EntryFill.Anchor", progressFillAnchor(entry.progressWidth()));
     }
 
     private com.hypixel.hytale.server.core.ui.Anchor progressFillAnchor(int width) {

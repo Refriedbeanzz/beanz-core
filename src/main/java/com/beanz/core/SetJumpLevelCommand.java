@@ -16,6 +16,7 @@ public class SetJumpLevelCommand extends AbstractPlayerCommand {
 
     public SetJumpLevelCommand() {
         super("beanzlevel", "Set skill level: /beanzlevel <level> OR /beanzlevel <player> <skill> <level>");
+        setAllowsExtraArguments(true);
     }
 
     @Override
@@ -29,7 +30,7 @@ public class SetJumpLevelCommand extends AbstractPlayerCommand {
         String input = context.getInputString();
         String[] tokens = input != null ? input.trim().split("\\s+") : new String[0];
 
-        // /beanzlevel <level>
+        // /beanzlevel <level>  — sets your own jump level
         if (tokens.length == 2) {
             int level = parseLevel(tokens[1]);
             if (level < 0) return;
@@ -56,8 +57,6 @@ public class SetJumpLevelCommand extends AbstractPlayerCommand {
                 return;
             }
 
-            // probe World for player lookup
-            // world.getPlayerRefs() returns a collection — find by username
             PlayerRef targetRef = null;
             for (PlayerRef pr : world.getPlayerRefs()) {
                 if (pr != null && targetName.equalsIgnoreCase(pr.getUsername())) {
@@ -74,20 +73,30 @@ public class SetJumpLevelCommand extends AbstractPlayerCommand {
                 return;
             }
 
-            var holder = targetRef.getHolder();
-            if (holder == null) {
+            @SuppressWarnings("unchecked")
+            Ref<EntityStore> targetEntityRef = (Ref<EntityStore>) targetRef.getReference();
+            if (targetEntityRef == null) {
                 BeanzCoreMod.getInstance().getLogger().atWarning().log(
-                    "[BeanzCore][Admin] /beanzlevel: could not resolve holder for '%s'",
+                    "[BeanzCore][Admin] /beanzlevel: could not resolve ref for '%s'",
+                    targetName
+                );
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Store<EntityStore> targetStore = (Store<EntityStore>) targetEntityRef.getStore();
+            if (targetStore == null) {
+                BeanzCoreMod.getInstance().getLogger().atWarning().log(
+                    "[BeanzCore][Admin] /beanzlevel: could not resolve store for '%s'",
                     targetName
                 );
                 return;
             }
 
-            PlayerSkillsComponent skills = BeanzCoreMod.getInstance().getOrCreateSkills(targetRef, holder);
+            PlayerSkillsComponent skills = BeanzCoreMod.getInstance().getOrCreateSkills(targetRef, targetStore, targetEntityRef);
             int xp = SkillLevelTable.getXpRequiredForLevel(level);
             setSkillLevelOnComponent(skills, skillType, level, xp);
 
-            PlayerAbilityData abilityData = BeanzCoreMod.getInstance().getAbilityManager().getOrCreate(targetRef, holder);
+            PlayerAbilityData abilityData = BeanzCoreMod.getInstance().getAbilityManager().getOrCreate(targetRef, targetStore, targetEntityRef);
             BeanzCoreMod.getInstance().syncAbilityUnlocks(targetRef, skills, abilityData);
 
             BeanzCoreMod.getInstance().getLogger().atInfo().log(
@@ -140,6 +149,10 @@ public class SetJumpLevelCommand extends AbstractPlayerCommand {
             case JUMP -> {
                 skills.setJumpLevel(level);
                 skills.setJumpXp(xp);
+            }
+            case RUNNING -> {
+                skills.setRunningLevel(level);
+                skills.setRunningXp(xp);
             }
         }
     }

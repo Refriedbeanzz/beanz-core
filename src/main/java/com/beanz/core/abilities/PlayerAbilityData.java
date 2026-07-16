@@ -90,6 +90,10 @@ public class PlayerAbilityData implements Component<EntityStore> {
     }
 
     private static AbilityData defaultData(AbilityType type) {
-        return new AbilityData(type, false, 2000L, Long.MIN_VALUE);
+        long cooldownMs = switch (type) {
+            case SKY_LEAP  -> 2_000L;
+            case OVERDRIVE -> 130_000L; // 10s duration + 120s cooldown after it ends
+        };
+        return new AbilityData(type, false, cooldownMs, Long.MIN_VALUE);
     }
 }

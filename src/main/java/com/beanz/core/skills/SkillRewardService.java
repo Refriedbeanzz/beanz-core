@@ -18,12 +18,12 @@ public class SkillRewardService {
     private static final double WALL_JUMP_HORIZONTAL_FORCE = 7.5;
 
     // Running skill
-    private static final double MAX_RUN_SPEED_MULTIPLIER = 1.2;   // 20% faster running at level 100
-    private static final double MAX_SPRINT_SPEED_MULTIPLIER = 1.25; // 25% faster sprinting at level 100
+    private static final double MAX_RUN_SPEED_MULTIPLIER = 1.5;   // 50% faster running at level 100
+    private static final double MAX_SPRINT_SPEED_MULTIPLIER = 1.8; // 80% faster sprinting at level 100
     private static final double MAX_SPRINT_STAMINA_RETURN_PER_TICK = 0.08f; // stamina returned per tick at level 100
-    private static final double OVERDRIVE_SPRINT_BONUS = 0.25;    // 25% on top of current sprint multiplier
+    private static final double OVERDRIVE_SPRINT_BONUS = 2.0;    // +200% on top of current sprint multiplier (TEST — dial back later)
     private static final long OVERDRIVE_DURATION_MS = 10_000L;
-    private static final long OVERDRIVE_COOLDOWN_MS = 30_000L;
+    private static final long OVERDRIVE_COOLDOWN_MS = 130_000L; // 10s duration + 120s cooldown after it ends
 
     public double getTotalReward(PlayerSkillsComponent skills, RewardType rewardType) {
         return getRewardsForSkill(skills, SkillType.JUMP).getOrDefault(rewardType, defaultValueFor(rewardType));

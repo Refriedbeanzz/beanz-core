@@ -83,22 +83,31 @@ The foundation skill. Proves the entire progression pipeline and gates the first
 
 ---
 
-### Sprint / Endurance *(planned)*
+### Running ✅ (Second system — fully built)
 
-Affects the stamina pool and regeneration rate. Since stamina already gates jump effectiveness, Sprint and Jump are naturally coupled — a high Sprint player jumps better for longer.
+Use-based progression from sprinting. Scales movement speed and reduces effective stamina cost of sprinting. Gates the Overdrive burst ability.
 
-- [ ] XP gain from sprinting
-- [ ] Stamina pool size scales with level
-- [ ] Stamina regen rate scales with level
-- [ ] Sprint duration scales with level
-- [ ] Passive: reduces stamina cost of jump at high level
+**Passive Scaling**
+- ✅ Walk speed scales with level — up to 1.2× base at level 100
+- ✅ Sprint speed scales with level — up to 1.25× base at level 100
+- ✅ Stamina cost of sprinting decreases with level — returns stamina each tick while sprinting proportional to level
+
+**XP Gain**
+- ✅ XP awarded each tick while sprinting
+
+**Overdrive** *(unlocks at level 50)*
+- ✅ 10-second sprint speed burst — 25% above normal sprint speed
+- ✅ 30-second cooldown
+- ✅ Bound to held item (Beanz Overdrive)
+- ✅ HUD notification on activation
+- [ ] Visual/audio feedback while Overdrive is active
 
 **Ability Unlocks by Level**
 
-| Level | Ability |
-|---|---|
-| ~50 | Dash — short burst of speed on Ability input |
-| ~80 | Endurance Surge — temporary stamina regen boost |
+| Level | Ability | Status |
+|---|---|---|
+| 50 | Overdrive — 10s sprint burst via Ability 3 | ✅ Built |
+| ~80 | Endurance Surge — temporary stamina regen boost | Planned |
 
 ---
 
@@ -179,6 +188,19 @@ Core survival loop. XP awarded on resource actions. All gathering skills follow 
   - ~80: Inspired — chance to craft a superior-quality item
 - [ ] **Smithing** — XP from forging gear; improved output quality/durability at high level
 - [ ] **Building** — XP from placing blocks in structures; unlock build-mode abilities
+
+---
+
+## Ability Items & Crafting *(planned)*
+
+Currently ability items (Sky Leap, Beanz Overdrive) use placeholder Hytale assets. The goal is proper craftable items tied to each ability.
+
+- [ ] Design unique item assets for each ability (model, texture, icon)
+- [ ] Add crafting recipes for ability items — require materials tied to the relevant skill
+  - e.g. Sky Leap item requires Jump-level materials gathered at high altitude
+  - e.g. Overdrive item requires Running-level materials from high-speed encounters
+- [ ] Gate crafting recipes behind skill level (can't craft the item until you've unlocked the ability)
+- [ ] Inventory display shows ability cooldown state on the item (if Hytale API supports it)
 
 ---
 

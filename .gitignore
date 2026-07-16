@@ -42,3 +42,9 @@ Thumbs.db
 
 # Local environment
 .env
+
+# Claude Code worktrees / session machinery
+.claude/
+
+# Nested separate repo (unrelated project living in this folder)
+sentral-core/

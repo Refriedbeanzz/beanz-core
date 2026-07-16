@@ -1,6 +1,7 @@
 package com.beanz.core;
 
 import com.beanz.core.abilities.AbilityManager;
+import com.beanz.core.abilities.OverdriveInteraction;
 import com.beanz.core.abilities.PlayerAbilityData;
 import com.beanz.core.abilities.TestAbility3Interaction;
 import com.beanz.core.abilities.WearableAbilityTestStateComponent;
@@ -108,6 +109,7 @@ public class BeanzCoreMod extends JavaPlugin {
             )
         );
         getCodecRegistry(Interaction.CODEC).register("Beanz_Test_Ability", TestAbility3Interaction.class, TestAbility3Interaction.CODEC);
+        getCodecRegistry(Interaction.CODEC).register("Beanz_Overdrive", OverdriveInteraction.class, OverdriveInteraction.CODEC);
         getEntityStoreRegistry().registerSystem(new JumpSkillSystem());
         getEntityStoreRegistry().registerSystem(new JumpFallDamageSystem());
         getEntityStoreRegistry().registerSystem(new RunningSkillSystem());
